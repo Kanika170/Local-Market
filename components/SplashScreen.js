@@ -1,10 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import ShoppingBagIcon from './ShoppingBagIcon';
 
-const SplashScreen = () => {
-  const navigation = useNavigation();
+const SplashScreen = ({ navigation }) => {
 
   // Animation refs
   const loadingDotsOpacity = useRef([

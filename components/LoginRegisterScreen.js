@@ -1,22 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import ShoppingBagIcon from './ShoppingBagIcon';
-import CustomerHomeFeed from './CustomerHomeFeed'; // Import the CustomerHomeFeed component
 
 const LoginRegisterScreen = ({ onSendOTP }) => {
+  const navigation = useNavigation();
   const [mobileNumber, setMobileNumber] = useState('');
   const [selectedUserType, setSelectedUserType] = useState('customer');
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track login status
 
   const handleLoginRegister = (mobileNumber, userType) => {
     // Simulate login/registration logic here (e.g., API call)
     console.log('Login/Register pressed', mobileNumber, userType);
-    setIsLoggedIn(true); // Set login status to true after button press
+    navigation.navigate('MainApp');
   };
-
-  if (isLoggedIn) {
-    return <CustomerHomeFeed />; // Render CustomerHomeFeed if logged in
-  }
 
   return (
     <View style={styles.container}>

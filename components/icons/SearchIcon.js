@@ -1,0 +1,13 @@
+import React from 'react';
+import Svg, { Path } from 'react-native-svg';
+
+const SearchIcon = ({ size = 24, color = '#666666' }) => (
+  <Svg width={size} height={size} viewBox="0 0 1000 1000" fill="none">
+    <Path
+      d="M400 100C300 100 200 150 150 250C100 350 100 450 150 550C200 650 300 700 400 700C450 700 500 680 540 650L750 860L860 750L650 540C680 500 700 450 700 400C700 300 650 200 550 150C500 125 450 100 400 100ZM400 200C450 200 500 220 530 250C580 300 600 350 600 400C600 450 580 500 530 550C500 580 450 600 400 600C350 600 300 580 270 550C220 500 200 450 200 400C200 350 220 300 270 250C300 220 350 200 400 200Z"
+      fill={color}
+    />
+  </Svg>
+);
+
+export default SearchIcon;

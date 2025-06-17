@@ -1,9 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import BottomNavigationBar from './BottomNavigationBar';
 import ProductDetailScreen from './ProductDetailScreen';
+
+const CustomerHomeFeed = () => {
+=======
 import ShopDetailScreen from './ShopDetailScreen';
 
-const CustomerHomeFeed = ({ onNavigateToSearch }) => {
+const CustomerHomeFeed = () => {
+=======
+
+const CustomerHomeFeed = () => {
+  const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('Home');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedShop, setSelectedShop] = useState(null);
@@ -531,11 +540,17 @@ const CustomerHomeFeed = ({ onNavigateToSearch }) => {
           <Text style={styles.headerTitle}>Shopping Companion</Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>Buy</Text>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('ChatScreen')}
+          >
+            <Text style={styles.headerIcon}>💬</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>Sell</Text>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('NotificationScreen')}
+          >
+            <Text style={styles.headerIcon}>🔔</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -543,43 +558,7 @@ const CustomerHomeFeed = ({ onNavigateToSearch }) => {
       {/* Content */}
       {renderTabContent()}
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => setActiveTab('Home')}
-        >
-          <Image 
-            source={require('../assets/6389f902-d158-468d-8f00-45bbb02103b2.png')} 
-            style={[styles.navIcon, activeTab === 'Home' && styles.activeNavIcon]} 
-          />
-          <Text style={[styles.navText, activeTab === 'Home' && styles.activeNavText]}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => setActiveTab('Search')}
-        >
-          <Text style={[styles.navIcon, activeTab === 'Search' && styles.activeNavIcon]}>🔍</Text>
-          <Text style={[styles.navText, activeTab === 'Search' && styles.activeNavText]}>Search</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => setActiveTab('Lists')}
-        >
-          <Text style={[styles.navIcon, activeTab === 'Lists' && styles.activeNavIcon]}>📋</Text>
-          <Text style={[styles.navText, activeTab === 'Lists' && styles.activeNavText]}>Lists</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => setActiveTab('Profile')}
-        >
-          <Text style={[styles.navIcon, activeTab === 'Profile' && styles.activeNavIcon]}>👤</Text>
-          <Text style={[styles.navText, activeTab === 'Profile' && styles.activeNavText]}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNavigationBar navigation={navigation} activeTab="Home" />
     </View>
   );
 };
@@ -615,21 +594,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   headerButton: {
+    width: 40,
+    height: 40,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: 8,
-  },
-  headerButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
   },
   content: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingBottom: 80, // Add padding for absolute positioned bottom nav
+    paddingBottom: Platform.OS === 'ios' ? 90 : 65, // Adjusted padding for bottom nav
   },
   sectionTitle: {
     fontSize: 20,

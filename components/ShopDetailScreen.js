@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import PageIndicators from './PageIndicators';
 
 const ShopDetailScreen = ({ shop, onBack }) => {
+  const navigation = useNavigation();
   const categories = [
     'Groceries', 'Fresh Produce', 'Dairy', 'Beverages', 'Snacks', 'Household'
   ];
@@ -10,21 +12,44 @@ const ShopDetailScreen = ({ shop, onBack }) => {
   const featuredProducts = [
     {
       id: 1,
-      name: 'Fresh Vegetables',
-      price: 'From $0.99',
-      image: require('../assets/grocery shop.jpeg')
+      name: 'Organic Apples',
+      price: '$3.99 per lb',
+      image: require('../assets/orange.jpeg')
     },
     {
       id: 2,
-      name: 'Organic Fruits',
-      price: 'From $1.99',
-      image: require('../assets/grocery shop.jpeg')
+      name: 'Fresh Avocados',
+      price: '$2.49 each',
+      image: require('../assets/fresh_avocados.jpeg')
     },
     {
       id: 3,
-      name: 'Daily Essentials',
-      price: 'From $2.99',
-      image: require('../assets/grocery shop.jpeg')
+      name: 'Sourdough Bread',
+      price: '$4.50 loaf',
+      image: require('../assets/sourdough_bread.jpeg')
+    },
+    {
+      id: 4,
+      name: 'Organic Milk',
+      price: '$3.75 per liter',
+      image: require('../assets/organic_milk.jpeg')
+    }
+  ];
+
+  const reviews = [
+    {
+      id: 1,
+      name: 'Sarah Johnson',
+      rating: '★★★★☆',
+      date: '2 days ago',
+      comment: 'Always fresh produce and excellent customer service. Highly recommend!'
+    },
+    {
+      id: 2,
+      name: 'Michael Chen',
+      rating: '★★★★★',
+      date: '1 week ago',
+      comment: 'Great selection of international foods and friendly staff.'
     }
   ];
 
@@ -63,9 +88,18 @@ const ShopDetailScreen = ({ shop, onBack }) => {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Shop Details</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>⋮</Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('ChatScreen')}
+          >
+            <Text style={styles.headerIcon}>💬</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('NotificationScreen')}
+          >
+            <Text style={styles.headerIcon}>🔔</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -139,10 +173,33 @@ const ShopDetailScreen = ({ shop, onBack }) => {
                   <View style={styles.productInfo}>
                     <Text style={styles.productName}>{product.name}</Text>
                     <Text style={styles.productPrice}>{product.price}</Text>
+                    <TouchableOpacity style={styles.addButton}>
+                        <Text style={styles.addButtonText}>+</Text>
+                    </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+
+          {/* Customer Reviews */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Customer Reviews</Text>
+            
+            {reviews.map((review) => (
+              <View key={review.id} style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <Text style={styles.reviewName}>{review.name}</Text>
+                  <Text style={styles.reviewRating}>{review.rating}</Text>
+                  <Text style={styles.reviewDate}>{review.date}</Text>
+                </View>
+                <Text style={styles.reviewComment}>{review.comment}</Text>
+              </View>
+            ))}
+            
+            <TouchableOpacity style={styles.viewAllButton}>
+              <Text style={styles.viewAllText}>View All Reviews</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Similar Shops */}
@@ -229,12 +286,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  buttonContainer: {
-    width: 40,
+  headerRight: {
+    flexDirection: 'row',
   },
-  buttonText: {
+  headerButton: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  headerIcon: {
+    fontSize: 20,
     color: '#FFFFFF',
-    fontSize: 24,
   },
   content: {
     flex: 1,
@@ -363,12 +429,15 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333333',
     marginBottom: 4,
+    textAlign: 'center',
   },
   productPrice: {
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: 'bold',
     color: '#9C27B0',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   similarShopsSection: {
     marginBottom: 24,
@@ -429,6 +498,62 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 12,
     color: '#666666',
+  },
+  addButton: {
+    backgroundColor: '#9C27B0',
+    borderRadius: 20,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  reviewCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  reviewName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
+  reviewRating: {
+    fontSize: 16,
+    color: '#FFD700',
+    marginRight: 10,
+  },
+  reviewDate: {
+    fontSize: 14,
+    color: '#757575',
+  },
+  reviewComment: {
+    fontSize: 14,
+    color: '#333333',
+    lineHeight: 20,
+  },
+  viewAllButton: {
+    backgroundColor: '#F3E5F5',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 10,
   },
 });
 

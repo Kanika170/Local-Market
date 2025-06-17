@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import PageIndicators from './PageIndicators';
 
 const ProductDetailScreen = ({ product, onBack }) => {
+  const navigation = useNavigation();
   const [selectedSize, setSelectedSize] = useState('US 9');
   
   const sizes = ['US 8', 'US 8.5', 'US 9', 'US 9.5', 'US 10', 'US 10.5', 'US 11', 'US 11.5'];
@@ -60,9 +62,18 @@ const ProductDetailScreen = ({ product, onBack }) => {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Shopping Companion</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Button</Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('ChatScreen')}
+          >
+            <Text style={styles.headerIcon}>💬</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('NotificationScreen')}
+          >
+            <Text style={styles.headerIcon}>🔔</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -232,8 +243,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  buttonContainer: {
+  headerRight: {
+    flexDirection: 'row',
+  },
+  headerButton: {
     width: 40,
+    height: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  headerIcon: {
+    fontSize: 20,
+    color: '#FFFFFF',
   },
   content: {
     flex: 1,
