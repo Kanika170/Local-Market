@@ -8,10 +8,30 @@ const LoginRegisterScreen = ({ onSendOTP }) => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [selectedUserType, setSelectedUserType] = useState('customer');
 
+  const handleSendOTP = (mobileNumber, userType) => {
+    // Default OTP handling if onSendOTP is not provided
+    console.log('Send OTP pressed', mobileNumber, userType);
+    if (onSendOTP) {
+      onSendOTP(mobileNumber, userType);
+    } else {
+      // Default behavior - proceed to login/register
+      handleLoginRegister(mobileNumber, userType);
+    }
+  };
+
   const handleLoginRegister = (mobileNumber, userType) => {
     // Simulate login/registration logic here (e.g., API call)
     console.log('Login/Register pressed', mobileNumber, userType);
-    navigation.navigate('MainApp');
+    
+    if (userType === 'shopowner') {
+      // Navigate to SellerApp and then to SellerTabs to show the dashboard
+      navigation.navigate('SellerApp', { 
+        screen: 'SellerTabs',
+        params: { screen: 'Dashboard' }
+      });
+    } else {
+      navigation.navigate('MainApp');
+    }
   };
 
   return (
@@ -93,7 +113,7 @@ const LoginRegisterScreen = ({ onSendOTP }) => {
       <View style={styles.buttonSection}>
         <TouchableOpacity
           style={styles.sendOTPButton}
-          onPress={() => onSendOTP(mobileNumber, selectedUserType)}
+          onPress={() => handleSendOTP(mobileNumber, selectedUserType)}
         >
           <Text style={styles.sendOTPText}>Send OTP</Text>
         </TouchableOpacity>

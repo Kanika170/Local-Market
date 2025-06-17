@@ -7,7 +7,11 @@ import ProductDetailScreen from './ProductDetailScreen';
 import ShopDetailScreen from './ShopDetailScreen';
 import SmartProductSearch from './SmartProductSearch';
 import ProfileScreen from './ProfileScreen';
-import ListsScreen from './ListsScreen';
+import EnhancedListsScreen from './EnhancedListsScreen';
+import ThemeSettingsScreen from './ThemeSettingsScreen';
+import NearbyShopsScreen from './NearbyShopsScreen';
+import ProductComparisonScreen from './ProductComparisonScreen';
+import ShopComparisonScreen from './ShopComparisonScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,7 +30,11 @@ const MainNavigator = () => {
       <Stack.Screen name="ShopDetailScreen" component={ShopDetailScreen} />
       <Stack.Screen name="SmartProductSearch" component={SmartProductSearch} />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-      <Stack.Screen name="Lists" component={ListsScreen} />
+      <Stack.Screen name="Lists" component={EnhancedListsScreen} />
+      <Stack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
+      <Stack.Screen name="NearbyShops" component={NearbyShopsScreen} />
+      <Stack.Screen name="ProductComparison" component={ProductComparisonScreen} />
+      <Stack.Screen name="ShopComparison" component={ShopComparisonScreen} />
     </Stack.Navigator>
   );
 };

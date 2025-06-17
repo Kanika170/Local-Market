@@ -10,13 +10,16 @@ import {
   Platform 
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme/useTheme';
 import BottomNavigationBar from './BottomNavigationBar';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
+  const { theme, currentTheme, isDarkMode, changeTheme, toggleDarkMode, availableThemes } = useTheme();
+  const styles = createStyles(theme);
+  
   const [showSettings, setShowSettings] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('English');
-  const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState({
     pushNotifications: true,
     newDeals: true,
@@ -171,33 +174,21 @@ const ProfileScreen = () => {
       </View>
 
       {/* Theme Settings */}
-      <View style={styles.settingsSection}>
+      <TouchableOpacity 
+        style={styles.settingsSection}
+        onPress={() => navigation.navigate('ThemeSettings')}
+      >
         <View style={styles.settingHeader}>
           <Text style={styles.settingIcon}>🎨</Text>
-          <Text style={styles.settingTitle}>Theme</Text>
+          <View style={styles.settingTitleContainer}>
+            <Text style={styles.settingTitle}>Theme Settings</Text>
+            <Text style={styles.settingSubtitle}>
+              {isDarkMode ? 'Dark Mode' : 'Light Mode'} • {currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1)} Theme
+            </Text>
+          </View>
+          <Text style={styles.chevronRight}>›</Text>
         </View>
-        <View style={styles.themeGrid}>
-          {['Purple', 'Blue', 'Green'].map(theme => (
-            <View key={theme} style={styles.themeItem}>
-              <View style={[
-                styles.themeColor,
-                { backgroundColor: theme === 'Purple' ? '#9C27B0' : 
-                                 theme === 'Blue' ? '#2196F3' : '#4CAF50' }
-              ]} />
-              <Text style={styles.themeText}>{theme}</Text>
-            </View>
-          ))}
-        </View>
-        <View style={styles.darkModeOption}>
-          <Text style={styles.darkModeText}>Dark Mode</Text>
-          <Switch
-            value={darkMode}
-            onValueChange={setDarkMode}
-            trackColor={{ false: '#E0E0E0', true: '#9C27B0' }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Notification Settings */}
       <View style={styles.settingsSection}>
@@ -256,16 +247,16 @@ const ProfileScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#9C27B0',
+    backgroundColor: theme.colors.primary,
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
+    paddingBottom: theme.spacing.m,
+    paddingHorizontal: theme.spacing.l,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -275,212 +266,220 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '600',
+    color: theme.colors.text.inverse,
+    ...theme.typography.h3,
   },
   headerRight: {
     flexDirection: 'row',
   },
   headerButton: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    marginLeft: 8,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.m,
+    marginLeft: theme.spacing.s,
   },
   headerButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: theme.colors.text.inverse,
+    ...theme.typography.caption,
   },
   content: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
   },
   profileSection: {
     paddingBottom: Platform.OS === 'ios' ? 90 : 65,
   },
   profileHeader: {
     alignItems: 'center',
-    padding: 20,
+    padding: theme.spacing.l,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: theme.colors.border,
   },
   avatar: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#E0E0E0',
-    marginBottom: 16,
+    backgroundColor: theme.colors.disabled,
+    marginBottom: theme.spacing.m,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 4,
+    ...theme.typography.h2,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
   },
   memberSince: {
-    fontSize: 16,
-    color: '#666666',
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
   },
   infoSection: {
-    padding: 20,
+    padding: theme.spacing.l,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: theme.colors.border,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 16,
+    ...theme.typography.h3,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.m,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.m,
   },
   label: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.s,
   },
   input: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#F9F9F9',
+    borderColor: theme.components.input.borderColor,
+    borderRadius: theme.borderRadius.m,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.m,
+    backgroundColor: theme.components.input.backgroundColor,
   },
   dropdownArrow: {
-    color: '#666666',
+    color: theme.colors.text.secondary,
     fontSize: 12,
   },
   section: {
-    padding: 20,
+    padding: theme.spacing.l,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: theme.colors.border,
   },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.m,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: theme.colors.surface,
   },
   listName: {
-    fontSize: 16,
+    ...theme.typography.body1,
     fontWeight: '500',
-    color: '#333333',
-    marginBottom: 4,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
   },
   listDetails: {
-    fontSize: 14,
-    color: '#666666',
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
   },
   chevron: {
     fontSize: 20,
-    color: '#9C27B0',
+    color: theme.colors.primary,
   },
   productItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.m,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: theme.colors.surface,
   },
   productName: {
-    fontSize: 16,
+    ...theme.typography.body1,
     fontWeight: '500',
-    color: '#333333',
-    marginBottom: 4,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
   },
   productStatus: {
-    fontSize: 14,
-    color: '#666666',
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
   },
   menuSection: {
-    padding: 20,
+    padding: theme.spacing.l,
   },
   menuItem: {
-    paddingVertical: 16,
+    paddingVertical: theme.spacing.m,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: theme.colors.surface,
   },
   menuText: {
-    fontSize: 16,
-    color: '#333333',
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
     textAlign: 'center',
   },
   logoutText: {
-    color: '#FF4444',
+    color: theme.colors.error,
   },
   settingsHeader: {
-    padding: 20,
+    padding: theme.spacing.l,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: theme.colors.border,
   },
   backButton: {
-    fontSize: 16,
-    color: '#9C27B0',
-    marginBottom: 16,
+    ...theme.typography.body1,
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.m,
   },
   settingsTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 8,
+    ...theme.typography.h2,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.s,
   },
   settingsSubtitle: {
-    fontSize: 16,
-    color: '#666666',
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
   },
   settingsSection: {
-    padding: 20,
+    padding: theme.spacing.l,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: theme.colors.border,
   },
   settingHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: theme.spacing.m,
   },
   settingIcon: {
     fontSize: 24,
-    marginRight: 12,
+    marginRight: theme.spacing.m,
+  },
+  settingTitleContainer: {
+    flex: 1,
   },
   settingTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333333',
+    ...theme.typography.h3,
+    color: theme.colors.text.primary,
+  },
+  settingSubtitle: {
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
+  },
+  chevronRight: {
+    fontSize: 24,
+    color: theme.colors.text.secondary,
+    marginLeft: theme.spacing.m,
   },
   languageOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.m,
   },
   radioButton: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#9C27B0',
-    marginRight: 12,
+    borderColor: theme.colors.primary,
+    marginRight: theme.spacing.m,
   },
   radioSelected: {
-    backgroundColor: '#9C27B0',
+    backgroundColor: theme.colors.primary,
   },
   languageText: {
-    fontSize: 16,
-    color: '#333333',
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
   },
   themeGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: theme.spacing.l,
   },
   themeItem: {
     alignItems: 'center',
@@ -488,47 +487,57 @@ const styles = StyleSheet.create({
   themeColor: {
     width: 60,
     height: 60,
-    borderRadius: 8,
-    marginBottom: 8,
+    borderRadius: theme.borderRadius.m,
+    marginBottom: theme.spacing.s,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedTheme: {
+    borderColor: theme.colors.text.primary,
+    borderWidth: 3,
   },
   themeText: {
-    fontSize: 14,
-    color: '#666666',
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+  },
+  selectedThemeText: {
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
   darkModeOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 20,
+    paddingTop: theme.spacing.l,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: theme.colors.border,
   },
   darkModeText: {
-    fontSize: 16,
-    color: '#333333',
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
   },
   notificationOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.m,
   },
   notificationText: {
-    fontSize: 16,
-    color: '#333333',
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
   },
   appInfo: {
-    padding: 20,
+    padding: theme.spacing.l,
     alignItems: 'center',
   },
   appVersion: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 4,
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs,
   },
   copyright: {
-    fontSize: 12,
-    color: '#999999',
+    ...theme.typography.caption,
+    color: theme.colors.text.tertiary,
   },
 });
 

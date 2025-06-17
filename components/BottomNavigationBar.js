@@ -1,11 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useTheme } from '../theme/useTheme';
 import HomeIcon from './icons/HomeIcon';
 import SearchIcon from './icons/SearchIcon';
 import ShoppingBagIcon from './icons/ShoppingBagIcon';
 import ProfileIcon from './icons/ProfileIcon';
 
 const BottomNavigationBar = ({ navigation, activeTab }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
   return (
     <View style={[
       styles.container,
@@ -17,7 +21,7 @@ const BottomNavigationBar = ({ navigation, activeTab }) => {
       >
         <HomeIcon 
           size={24} 
-          color={activeTab === 'Home' ? '#9C27B0' : '#666666'} 
+          color={activeTab === 'Home' ? theme.colors.primary : theme.colors.text.secondary} 
         />
         <Text style={[
           styles.navText,
@@ -31,7 +35,7 @@ const BottomNavigationBar = ({ navigation, activeTab }) => {
       >
         <SearchIcon 
           size={24} 
-          color={activeTab === 'Search' ? '#9C27B0' : '#666666'} 
+          color={activeTab === 'Search' ? theme.colors.primary : theme.colors.text.secondary} 
         />
         <Text style={[
           styles.navText,
@@ -45,7 +49,7 @@ const BottomNavigationBar = ({ navigation, activeTab }) => {
       >
         <ShoppingBagIcon 
           size={24} 
-          color={activeTab === 'Lists' ? '#9C27B0' : '#666666'} 
+          color={activeTab === 'Lists' ? theme.colors.primary : theme.colors.text.secondary} 
         />
         <Text style={[
           styles.navText,
@@ -59,7 +63,7 @@ const BottomNavigationBar = ({ navigation, activeTab }) => {
       >
         <ProfileIcon 
           size={24} 
-          color={activeTab === 'Profile' ? '#9C27B0' : '#666666'} 
+          color={activeTab === 'Profile' ? theme.colors.primary : theme.colors.text.secondary} 
         />
         <Text style={[
           styles.navText,
@@ -70,13 +74,13 @@ const BottomNavigationBar = ({ navigation, activeTab }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingTop: 8,
+    borderTopColor: theme.colors.border,
+    paddingTop: theme.spacing.s,
   },
   navItem: {
     flex: 1,
@@ -84,11 +88,11 @@ const styles = StyleSheet.create({
   },
   navText: {
     fontSize: 12,
-    color: '#666666',
-    marginTop: 4,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
   },
   activeText: {
-    color: '#9C27B0',
+    color: theme.colors.primary,
     fontWeight: '500',
   },
 });

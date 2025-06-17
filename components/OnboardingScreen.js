@@ -1,11 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme/useTheme';
 import PhoneIllustration from './PhoneIllustration';
 import PageIndicators from './PageIndicators';
 
 const OnboardingScreen = () => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
 
   const handleNext = () => {
     navigation.replace('LoginRegisterScreen'); // Navigate to Login/Register screen
@@ -70,75 +73,73 @@ const OnboardingScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: theme.spacing.l,
+    paddingTop: theme.spacing.xxl,
+    paddingBottom: theme.spacing.xl,
   },
   illustrationContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: theme.spacing.l,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#9C27B0',
+    ...theme.typography.h1,
+    color: theme.colors.primary,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: theme.spacing.m,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666666',
+    ...theme.typography.body1,
+    color: theme.colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: 30,
-    paddingHorizontal: 10,
+    marginBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.s,
   },
   featuresContainer: {
-    marginBottom: 40,
+    marginBottom: theme.spacing.xl,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: theme.spacing.l,
   },
   featureIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F3E5F5',
+    backgroundColor: theme.colors.ripple,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: theme.spacing.m,
   },
   tagIcon: {
     width: 20,
     height: 16,
-    backgroundColor: '#9C27B0',
-    borderRadius: 2,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.xs,
     position: 'relative',
   },
   bellIcon: {
     width: 16,
     height: 20,
-    backgroundColor: '#9C27B0',
-    borderRadius: 8,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderBottomLeftRadius: 2,
-    borderBottomRightRadius: 2,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.m,
+    borderTopLeftRadius: theme.borderRadius.m,
+    borderTopRightRadius: theme.borderRadius.m,
+    borderBottomLeftRadius: theme.borderRadius.xs,
+    borderBottomRightRadius: theme.borderRadius.xs,
   },
   percentIcon: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#9C27B0',
+    ...theme.typography.h2,
+    color: theme.colors.primary,
   },
   featureText: {
-    fontSize: 16,
-    color: '#333333',
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
     flex: 1,
   },
   bottomContainer: {
@@ -146,24 +147,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 'auto',
-    marginBottom: 80,
+    marginBottom: theme.spacing.xxl,
   },
   skipText: {
-    fontSize: 16,
-    color: '#9C27B0',
-    fontWeight: '500',
+    ...theme.typography.button,
+    color: theme.colors.primary,
   },
   nextButton: {
-    backgroundColor: '#FF9800',
-    paddingVertical: 16,
-    paddingHorizontal: 40,
-    borderRadius: 8,
+    backgroundColor: theme.colors.secondary,
+    paddingVertical: theme.spacing.m,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.m,
     minWidth: 120,
   },
   nextText: {
-    color: '#000000',
-    fontSize: 16,
-    fontWeight: '500',
+    ...theme.typography.button,
+    color: theme.colors.text.primary,
     textAlign: 'center',
   },
 });

@@ -68,10 +68,12 @@ const NotificationScreen = () => {
             )}
           </View>
         </View>
-        <TouchableOpacity 
+          <TouchableOpacity 
           style={styles.actionButton}
           onPress={() => {
-            if (notification.action === 'Reply') {
+            if (notification.type === 'shop_post') {
+              navigation.navigate('ShopNotificationScreen');
+            } else if (notification.action === 'Reply') {
               navigation.navigate('ChatScreen');
             }
           }}

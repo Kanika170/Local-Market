@@ -1,67 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme/useTheme';
+import { getProductPriceComparison } from '../data/staticData';
 import PageIndicators from './PageIndicators';
 
-const ProductDetailScreen = ({ product, onBack }) => {
+const ProductDetailScreen = ({ route, onBack }) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
+  const [comparisonData, setComparisonData] = useState(null);
   const [selectedSize, setSelectedSize] = useState('US 9');
+  
+  // Get product from route params or props
+  const product = route?.params?.product || route?.params || {};
+  
+  useEffect(() => {
+    if (product.id) {
+      const data = getProductPriceComparison(product.id);
+      setComparisonData(data);
+    }
+  }, [product.id]);
   
   const sizes = ['US 8', 'US 8.5', 'US 9', 'US 9.5', 'US 10', 'US 10.5', 'US 11', 'US 11.5'];
   
-  const stores = [
-    {
-      name: 'FootLockr',
-      logo: require('../assets/shopping bag.jpeg'),
-      distance: '2.3 miles away',
-      price: '$149.99',
-      status: 'In Stock'
-    },
-    {
-      name: 'Nike Store',
-      logo: require('../assets/shopping bag.jpeg'),
-      distance: 'Online',
-      price: '$159.99',
-      status: 'In Stock'
-    },
-    {
-      name: 'Finish Line',
-      logo: require('../assets/shopping bag.jpeg'),
-      distance: '4.1 miles away',
-      price: '$154.99',
-      status: 'Low Stock'
-    }
-  ];
+  const styles = createStyles(theme);
+  
+  if (!product.name) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Product Details</Text>
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Product not found</Text>
+        </View>
+      </View>
+    );
+  }
 
-  const similarProducts = [
-    {
-      id: 1,
-      name: 'Nike Air Max 90',
-      price: 'From $129.99',
-      image: require('../assets/shopping bag.jpeg')
-    },
-    {
-      id: 2,
-      name: 'Adidas Ultraboost',
-      price: 'From $179.99',
-      image: require('../assets/shopping bag.jpeg')
-    },
-    {
-      id: 3,
-      name: 'New Balance 990',
-      price: 'From $184.99',
-      image: require('../assets/shopping bag.jpeg')
-    }
-  ];
+  const lowestPrice = comparisonData ? Math.min(...comparisonData.prices.map(p => p.price)) : (product.price || 0);
+  const availableShops = comparisonData ? comparisonData.prices.length : 1;
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Text style={styles.backButtonText}>←</Text>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={onBack || (() => navigation.goBack())}
+        >
+          <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Shopping Companion</Text>
+        <Text style={styles.headerTitle}>Product Details</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity 
             style={styles.headerButton}
@@ -78,14 +71,16 @@ const ProductDetailScreen = ({ product, onBack }) => {
         </View>
       </View>
 
-      <ScrollView style={styles.content}>
-        {/* Product Images */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Product Image */}
         <View style={styles.imageContainer}>
-          <Image
-            source={require('../assets/shopping bag.jpeg')}
-            style={styles.productImage}
-            resizeMode="cover"
-          />
+          {product.image && typeof product.image === 'string' ? (
+            <Text style={styles.productImageEmoji}>{product.image}</Text>
+          ) : product.image ? (
+            <Image source={product.image} style={styles.productImage} />
+          ) : (
+            <Text style={styles.productImageEmoji}>📦</Text>
+          )}
           <View style={styles.indicatorsContainer}>
             <PageIndicators total={4} current={0} />
           </View>
@@ -93,40 +88,77 @@ const ProductDetailScreen = ({ product, onBack }) => {
 
         {/* Product Info */}
         <View style={styles.productInfo}>
+          <View style={styles.shopInfo}>
+            <Text style={styles.shopName}>{product.shop || product.brand}</Text>
+            <Text style={styles.category}>{product.category}</Text>
+          </View>
+          
           <Text style={styles.productName}>{product.name}</Text>
           
+          <View style={styles.priceContainer}>
+            <Text style={styles.price}>₹{lowestPrice}</Text>
+            {product.discount && (
+              <View style={styles.discountBadge}>
+                <Text style={styles.discountText}>{product.discount}% OFF</Text>
+              </View>
+            )}
+            {product.tag && (
+              <View style={styles.tagBadge}>
+                <Text style={styles.tagText}>{product.tag}</Text>
+              </View>
+            )}
+          </View>
+
           <View style={styles.ratingContainer}>
-            <Text style={styles.rating}>{'★'.repeat(Math.floor(product.rating))}{'☆'.repeat(5-Math.floor(product.rating))}</Text>
-            <Text style={styles.reviews}>{product.rating} ({product.reviews} reviews)</Text>
+            <Text style={styles.rating}>⭐ {product.rating}</Text>
+            <Text style={styles.reviews}>({product.reviews} reviews)</Text>
           </View>
 
           <Text style={styles.description}>{product.description}</Text>
 
-          {/* Price Comparison */}
-          <View style={styles.priceComparisonHeader}>
-            <Text style={styles.sectionTitle}>Price Comparison</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllButton}>See All</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.priceComparison}>
-            {stores.map((store, index) => (
-              <View key={index} style={styles.storeItem}>
-                <View style={styles.storeHeader}>
-                  <Image source={store.logo} style={styles.storeLogo} />
-                  <View style={styles.storeInfo}>
-                    <Text style={styles.storeName}>{store.name}</Text>
-                    <Text style={styles.storeDistance}>{store.distance}</Text>
-                  </View>
-                  <Text style={styles.storePrice}>{store.price}</Text>
-                </View>
-                <Text style={[
-                  styles.storeStatus,
-                  store.status === 'In Stock' ? styles.inStock : styles.lowStock
-                ]}>{store.status}</Text>
+          {/* Price Comparison Section */}
+          {comparisonData && (
+            <View style={styles.priceComparisonSection}>
+              <View style={styles.comparisonHeader}>
+                <Text style={styles.comparisonTitle}>Price Comparison</Text>
+                <TouchableOpacity 
+                  style={styles.viewAllButton}
+                  onPress={() => navigation.navigate('ProductComparison', { productId: product.id })}
+                >
+                  <Text style={styles.viewAllText}>View All</Text>
+                </TouchableOpacity>
               </View>
-            ))}
-          </View>
+              
+              <View style={styles.comparisonSummary}>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Available at</Text>
+                  <Text style={styles.summaryValue}>{availableShops} shops</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Best Price</Text>
+                  <Text style={styles.summaryValue}>₹{lowestPrice}</Text>
+                </View>
+              </View>
+
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {comparisonData.prices.slice(0, 3).map((priceData) => (
+                  <View key={priceData.shop.id} style={styles.priceCard}>
+                    <Text style={styles.priceCardShop}>{priceData.shop.name}</Text>
+                    <Text style={styles.priceCardPrice}>₹{priceData.price}</Text>
+                    <Text style={styles.priceCardDistance}>
+                      {priceData.shop.location.distance} km
+                    </Text>
+                    <Text style={[
+                      styles.priceCardStock,
+                      priceData.inStock ? styles.inStock : styles.outOfStock
+                    ]}>
+                      {priceData.inStock ? 'In Stock' : 'Out of Stock'}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           {/* Track Price Changes */}
           <View style={styles.trackPriceContainer}>
@@ -137,77 +169,86 @@ const ProductDetailScreen = ({ product, onBack }) => {
               <Text style={styles.trackPriceTitle}>Track Price Changes</Text>
               <Text style={styles.trackPriceSubtitle}>Get notified when the price drops below your target</Text>
             </View>
-            <View style={styles.toggleContainer}>
+            <TouchableOpacity style={styles.toggleContainer}>
               <View style={styles.toggle} />
-            </View>
+            </TouchableOpacity>
           </View>
 
-          {/* Size Selector */}
-          <Text style={styles.sectionTitle}>Select Size</Text>
-          <View style={styles.sizeContainer}>
-            {sizes.map((size) => (
-              <TouchableOpacity
-                key={size}
-                style={[
-                  styles.sizeButton,
-                  selectedSize === size && styles.selectedSizeButton
-                ]}
-                onPress={() => setSelectedSize(size)}
-              >
-                <Text style={[
-                  styles.sizeButtonText,
-                  selectedSize === size && styles.selectedSizeButtonText
-                ]}>{size}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {/* Size Selector (if applicable) */}
+          {product.category === 'Footwear' && (
+            <>
+              <Text style={styles.sectionTitle}>Select Size</Text>
+              <View style={styles.sizeContainer}>
+                {sizes.map((size) => (
+                  <TouchableOpacity
+                    key={size}
+                    style={[
+                      styles.sizeButton,
+                      selectedSize === size && styles.selectedSizeButton
+                    ]}
+                    onPress={() => setSelectedSize(size)}
+                  >
+                    <Text style={[
+                      styles.sizeButtonText,
+                      selectedSize === size && styles.selectedSizeButtonText
+                    ]}>{size}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+        </View>
 
-          {/* Compare Prices Button */}
-          <TouchableOpacity style={styles.comparePricesButton}>
-            <Text style={styles.comparePricesText}>Compare Prices</Text>
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.addToListButton}>
+            <Text style={styles.addToListText}>Add to List</Text>
           </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.shareButton}>
+            <Text style={styles.shareText}>Share</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.compareButton}
+            onPress={() => navigation.navigate('ProductComparison', { productId: product.id })}
+          >
+            <Text style={styles.compareText}>Compare Prices</Text>
+          </TouchableOpacity>
+        </View>
 
-          {/* Similar Products */}
-          <View style={styles.similarProductsSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Similar Products</Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAllButton}>See All</Text>
-              </TouchableOpacity>
+        {/* Price Alert */}
+        <View style={styles.alertSection}>
+          <View style={styles.alertCard}>
+            <Text style={styles.alertIcon}>🔔</Text>
+            <View style={styles.alertContent}>
+              <Text style={styles.alertTitle}>Price Alert</Text>
+              <Text style={styles.alertDescription}>
+                Get notified when price drops or back in stock
+              </Text>
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {similarProducts.map((item) => (
-                <TouchableOpacity key={item.id} style={styles.similarProductCard}>
-                  <Image source={item.image} style={styles.similarProductImage} />
-                  <View style={styles.similarProductInfo}>
-                    <Text style={styles.similarProductName}>{item.name}</Text>
-                    <Text style={styles.similarProductPrice}>{item.price}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <TouchableOpacity style={styles.alertButton}>
+              <Text style={styles.alertButtonText}>Set Alert</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Image 
-            source={require('../assets/6389f902-d158-468d-8f00-45bbb02103b2.png')} 
-            style={styles.navIcon} 
-          />
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CustomerHomeFeed')}>
+          <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navText}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('SmartProductSearch')}>
           <Text style={styles.navIcon}>🔍</Text>
           <Text style={styles.navText}>Search</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Lists')}>
           <Text style={styles.navIcon}>📋</Text>
           <Text style={styles.navText}>Lists</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ProfileScreen')}>
           <Text style={styles.navIcon}>👤</Text>
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
@@ -216,13 +257,13 @@ const ProductDetailScreen = ({ product, onBack }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#9C27B0',
+    backgroundColor: theme.colors.primary,
     paddingTop: 50,
     paddingBottom: 15,
     paddingHorizontal: 20,
@@ -231,20 +272,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButton: {
-    padding: 8,
+    flex: 1,
   },
   backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '600',
+    color: theme.colors.text.inverse,
+    fontSize: 16,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
     fontSize: 18,
     fontWeight: '600',
+    flex: 2,
+    textAlign: 'center',
   },
   headerRight: {
     flexDirection: 'row',
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   headerButton: {
     width: 40,
@@ -257,18 +301,33 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     fontSize: 20,
-    color: '#FFFFFF',
   },
   content: {
     flex: 1,
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+  },
   imageContainer: {
+    backgroundColor: theme.colors.surface,
     height: 300,
-    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
   },
   productImage: {
-    width: '100%',
-    height: '100%',
+    width: 200,
+    height: 200,
+    resizeMode: 'contain',
+  },
+  productImageEmoji: {
+    fontSize: 120,
   },
   indicatorsContainer: {
     position: 'absolute',
@@ -279,11 +338,58 @@ const styles = StyleSheet.create({
   productInfo: {
     padding: 20,
   },
+  shopInfo: {
+    marginBottom: 12,
+  },
+  shopName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+  category: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    marginTop: 2,
+  },
   productName: {
     fontSize: 24,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: 16,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  price: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    marginRight: 12,
+  },
+  discountBadge: {
+    backgroundColor: theme.colors.error,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  discountText: {
+    color: theme.colors.text.inverse,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#333333',
-    marginBottom: 12,
+  },
+  tagBadge: {
+    backgroundColor: theme.colors.success,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  tagText: {
+    color: theme.colors.text.inverse,
+    fontSize: 12,
+    fontWeight: '600',
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -291,91 +397,114 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   rating: {
-    color: '#FFC107',
     fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
     marginRight: 8,
   },
   reviews: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.colors.text.secondary,
   },
   description: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    lineHeight: 24,
     marginBottom: 24,
   },
-  priceComparisonHeader: {
+  priceComparisonSection: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  comparisonHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333333',
-  },
-  seeAllButton: {
-    color: '#9C27B0',
-    fontSize: 14,
-  },
-  priceComparison: {
-    marginBottom: 24,
-  },
-  storeItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
   },
-  storeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  storeLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  storeInfo: {
-    flex: 1,
-  },
-  storeName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333333',
-  },
-  storeDistance: {
-    fontSize: 12,
-    color: '#666666',
-  },
-  storePrice: {
+  comparisonTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333333',
+    color: theme.colors.text.primary,
   },
-  storeStatus: {
+  viewAllButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  viewAllText: {
+    color: theme.colors.text.inverse,
     fontSize: 12,
+    fontWeight: '500',
+  },
+  comparisonSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  summaryItem: {
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
+    marginBottom: 4,
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+  },
+  priceCard: {
+    backgroundColor: theme.colors.background,
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 12,
+    minWidth: 120,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  priceCardShop: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  priceCardPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    marginBottom: 2,
+  },
+  priceCardDistance: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
+    marginBottom: 4,
+  },
+  priceCardStock: {
+    fontSize: 10,
     fontWeight: '500',
   },
   inStock: {
-    color: '#4CAF50',
+    color: theme.colors.success,
   },
-  lowStock: {
-    color: '#FF9800',
+  outOfStock: {
+    color: theme.colors.error,
   },
   trackPriceContainer: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: theme.colors.primary + '10',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '30',
   },
   trackPriceIcon: {
     marginRight: 12,
@@ -389,16 +518,16 @@ const styles = StyleSheet.create({
   trackPriceTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: theme.colors.text.primary,
   },
   trackPriceSubtitle: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.colors.text.secondary,
   },
   toggleContainer: {
     width: 40,
     height: 24,
-    backgroundColor: '#9C27B0',
+    backgroundColor: theme.colors.primary,
     borderRadius: 12,
     justifyContent: 'center',
     paddingHorizontal: 2,
@@ -406,18 +535,24 @@ const styles = StyleSheet.create({
   toggle: {
     width: 20,
     height: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.text.inverse,
     borderRadius: 10,
     alignSelf: 'flex-end',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    marginBottom: 12,
   },
   sizeContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginVertical: 16,
+    marginBottom: 24,
   },
   sizeButton: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -425,70 +560,108 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   selectedSizeButton: {
-    backgroundColor: '#9C27B0',
-    borderColor: '#9C27B0',
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   sizeButtonText: {
-    color: '#333333',
+    color: theme.colors.text.primary,
     fontSize: 14,
   },
   selectedSizeButtonText: {
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
   },
-  comparePricesButton: {
-    backgroundColor: '#FF9800',
-    borderRadius: 8,
-    paddingVertical: 16,
+  actionButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
     marginBottom: 24,
   },
-  comparePricesText: {
-    color: '#FFFFFF',
+  addToListButton: {
+    flex: 1,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginRight: 6,
+  },
+  addToListText: {
+    color: theme.colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
-  similarProductsSection: {
+  shareButton: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginHorizontal: 3,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  shareText: {
+    color: theme.colors.text.primary,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  compareButton: {
+    flex: 1,
+    backgroundColor: theme.colors.secondary,
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginLeft: 6,
+  },
+  compareText: {
+    color: theme.colors.text.inverse,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  alertSection: {
+    paddingHorizontal: 20,
     marginBottom: 24,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  similarProductCard: {
-    width: 160,
-    marginRight: 16,
-    backgroundColor: '#FFFFFF',
+  alertCard: {
+    backgroundColor: theme.colors.primary + '10',
     borderRadius: 12,
-    padding: 12,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.colors.primary + '30',
   },
-  similarProductImage: {
-    width: '100%',
-    height: 120,
-    borderRadius: 8,
-    marginBottom: 12,
+  alertIcon: {
+    fontSize: 24,
+    marginRight: 12,
   },
-  similarProductInfo: {
-    alignItems: 'flex-start',
+  alertContent: {
+    flex: 1,
   },
-  similarProductName: {
+  alertTitle: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#333333',
+    fontWeight: '600',
+    color: theme.colors.text.primary,
     marginBottom: 4,
   },
-  similarProductPrice: {
+  alertDescription: {
     fontSize: 12,
-    color: '#9C27B0',
+    color: theme.colors.text.secondary,
+  },
+  alertButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  alertButtonText: {
+    color: theme.colors.text.inverse,
+    fontSize: 12,
+    fontWeight: '500',
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: theme.colors.border,
     paddingVertical: 12,
   },
   navItem: {
@@ -496,14 +669,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   navIcon: {
-    width: 20,
-    height: 20,
+    fontSize: 20,
     marginBottom: 4,
-    tintColor: '#666666',
+    color: theme.colors.text.secondary,
   },
   navText: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.colors.text.secondary,
   },
 });
 
