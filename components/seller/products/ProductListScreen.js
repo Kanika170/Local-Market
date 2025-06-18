@@ -34,8 +34,8 @@ const ProductListScreen = () => {
       stock: 25,
       image: '🍅',
       status: 'active',
-      views: 145,
-      likes: 23,
+      rating: 4.5,
+      reviewCount: 23,
     },
     {
       id: 2,
@@ -46,8 +46,8 @@ const ProductListScreen = () => {
       stock: 5,
       image: '🌾',
       status: 'active',
-      views: 89,
-      likes: 12,
+      rating: 4.2,
+      reviewCount: 12,
     },
     {
       id: 3,
@@ -58,8 +58,8 @@ const ProductListScreen = () => {
       stock: 0,
       image: '🥛',
       status: 'out_of_stock',
-      views: 67,
-      likes: 8,
+      rating: 4.0,
+      reviewCount: 8,
     },
     {
       id: 4,
@@ -70,8 +70,8 @@ const ProductListScreen = () => {
       stock: 15,
       image: '🌾',
       status: 'active',
-      views: 234,
-      likes: 45,
+      rating: 4.7,
+      reviewCount: 45,
     },
   ]);
 
@@ -166,14 +166,15 @@ const ProductListScreen = () => {
               {item.stock} units
             </Text>
           </View>
-          <View style={styles.statItem}>
-            <Icon name="eye" size={16} color={theme.colors.text.secondary} />
-            <Text style={styles.statText}>{item.views} views</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Icon name="heart" size={16} color={theme.colors.text.secondary} />
-            <Text style={styles.statText}>{item.likes} likes</Text>
-          </View>
+          <TouchableOpacity 
+            style={styles.statItem}
+            onPress={() => navigation.navigate('ProductShow', { product: item })}
+          >
+            <Icon name="star" size={16} color={theme.colors.warning} />
+            <Text style={styles.statText}>
+              {item.rating} ({item.reviewCount} reviews)
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.stockStatusContainer}>

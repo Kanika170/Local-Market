@@ -14,15 +14,6 @@ const AdditionalOptionsSection = ({
       <Text style={styles.sectionTitle}>Additional Options</Text>
 
       <View style={styles.switchRow}>
-        <Text style={styles.switchLabel}>Home Delivery Available</Text>
-        <Switch
-          value={formData.isDeliveryAvailable}
-          onValueChange={(value) => onToggleOption('isDeliveryAvailable', value)}
-          trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
-        />
-      </View>
-
-      <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Mark as Best Seller</Text>
         <Switch
           value={formData.isBestSeller}
@@ -36,6 +27,15 @@ const AdditionalOptionsSection = ({
         <Switch
           value={formData.isDiscounted}
           onValueChange={(value) => onToggleOption('isDiscounted', value)}
+          trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
+        />
+      </View>
+
+      <View style={styles.switchRow}>
+        <Text style={styles.switchLabel}>Home Delivery Available</Text>
+        <Switch
+          value={formData.isDeliveryAvailable}
+          onValueChange={(value) => onToggleOption('isDeliveryAvailable', value)}
           trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
         />
       </View>

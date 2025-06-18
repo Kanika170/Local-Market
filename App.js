@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from './theme/ThemeContext';
 import { LocationProvider } from './context/LocationContext';
 import { ShoppingListProvider } from './context/ShoppingListContext';
@@ -17,25 +18,27 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <LocationProvider>
-        <ShoppingListProvider>
-          <SellerProvider>
-            <NavigationContainer>
-              <Stack.Navigator 
-                initialRouteName="SplashScreen"
-                screenOptions={{ headerShown: false }}
-              >
-                <Stack.Screen name="SplashScreen" component={SplashScreen} />
-                <Stack.Screen name="OnboardingScreen" component={OnboardingScreen} />
-                <Stack.Screen name="LoginRegisterScreen" component={LoginRegisterScreen} />
-                <Stack.Screen name="MainApp" component={AppNavigator} />
-                <Stack.Screen name="SellerApp" component={SellerNavigator} />
-              </Stack.Navigator>
-            </NavigationContainer>
-          </SellerProvider>
-        </ShoppingListProvider>
-      </LocationProvider>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <LocationProvider>
+          <ShoppingListProvider>
+            <SellerProvider>
+              <NavigationContainer>
+                <Stack.Navigator 
+                  initialRouteName="SplashScreen"
+                  screenOptions={{ headerShown: false }}
+                >
+                  <Stack.Screen name="SplashScreen" component={SplashScreen} />
+                  <Stack.Screen name="OnboardingScreen" component={OnboardingScreen} />
+                  <Stack.Screen name="LoginRegisterScreen" component={LoginRegisterScreen} />
+                  <Stack.Screen name="MainApp" component={AppNavigator} />
+                  <Stack.Screen name="SellerApp" component={SellerNavigator} />
+                </Stack.Navigator>
+              </NavigationContainer>
+            </SellerProvider>
+          </ShoppingListProvider>
+        </LocationProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

@@ -193,7 +193,7 @@ const SellerDashboardScreen = () => {
           </View>
           <View style={{ flex: 1 }}>
             <StatsCard
-              title="New Customers"
+              title="New Followers"
               value={analytics.today?.newCustomers || 0}
               icon="account-plus"
               change={12}

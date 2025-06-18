@@ -29,7 +29,7 @@ const ShopSettingsScreen = () => {
     
     // Business Settings
     deliveryAvailable: true,
-    homeDelivery: true,
+    homeDelivery: false,
     pickupAvailable: true,
     onlinePayments: true,
     cashOnDelivery: true,

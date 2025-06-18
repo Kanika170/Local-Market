@@ -8,12 +8,13 @@ import {
   ScrollView,
   Switch,
   Alert,
-  Image,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../../theme/useTheme';
 import { useSeller } from '../../../context/SellerContext';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ImageUploadComponent from '../../common/ImageUploadComponent';
+import SearchableDropdown from '../../common/SearchableDropdown';
 
 const AddEditProductScreen = () => {
   const navigation = useNavigation();
@@ -34,14 +35,15 @@ const AddEditProductScreen = () => {
     unit: 'kg',
     images: [],
     tags: [],
-    isDeliveryAvailable: true,
+    isDeliveryAvailable: false,
     isBestSeller: false,
     isDiscounted: false,
     ...editProduct,
   });
 
   const [errors, setErrors] = useState({});
-  const [selectedImages, setSelectedImages] = useState([]);
+  const [suggestedProducts, setSuggestedProducts] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const categories = [
     'Vegetables',
@@ -50,7 +52,11 @@ const AddEditProductScreen = () => {
     'Dairy',
     'Beverages',
     'Snacks',
-    'Others',
+    'Spices & Condiments',
+    'Bakery',
+    'Frozen Foods',
+    'Personal Care',
+    'Household Items',
   ];
 
   const units = ['kg', 'g', 'L', 'ml', 'piece', 'pack'];
@@ -78,6 +84,51 @@ const AddEditProductScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  useEffect(() => {
+    if (formData.name && formData.category && !isEditing) {
+      fetchSuggestedProducts();
+    }
+  }, [formData.name, formData.category]);
+
+  const fetchSuggestedProducts = () => {
+    // Mock suggested products based on name and category
+    const mockSuggestions = [
+      {
+        id: 1,
+        name: 'Organic Tomatoes',
+        category: 'Vegetables',
+        price: 60,
+        description: 'Fresh organic tomatoes from local farms',
+        unit: 'kg',
+      },
+      {
+        id: 2,
+        name: 'Fresh Spinach',
+        category: 'Vegetables',
+        price: 40,
+        description: 'Nutrient-rich fresh spinach leaves',
+        unit: 'kg',
+      },
+    ].filter(product => 
+      product.category === formData.category && 
+      product.name.toLowerCase().includes(formData.name.toLowerCase())
+    );
+
+    setSuggestedProducts(mockSuggestions);
+    setShowSuggestions(mockSuggestions.length > 0);
+  };
+
+  const applySuggestedProduct = (product) => {
+    setFormData({
+      ...formData,
+      name: product.name,
+      description: product.description,
+      price: product.price.toString(),
+      unit: product.unit,
+    });
+    setShowSuggestions(false);
+  };
+
   const handleSave = () => {
     if (validateForm()) {
       const productData = {
@@ -85,7 +136,6 @@ const AddEditProductScreen = () => {
         price: parseFloat(formData.price),
         originalPrice: parseFloat(formData.originalPrice) || parseFloat(formData.price),
         stock: parseInt(formData.stock),
-        images: selectedImages,
       };
 
       if (isEditing) {
@@ -101,11 +151,6 @@ const AddEditProductScreen = () => {
 
       navigation.goBack();
     }
-  };
-
-  const handleImagePicker = () => {
-    // Image picker functionality would be implemented here
-    Alert.alert('Coming Soon', 'Image upload feature will be available soon!');
   };
 
   const handleAddTag = (tag) => {
@@ -145,33 +190,12 @@ const AddEditProductScreen = () => {
 
       <View style={styles.form}>
         {/* Images Section */}
-        <View style={styles.imagesSection}>
-          <Text style={styles.sectionTitle}>Product Images</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TouchableOpacity
-              style={styles.addImageButton}
-              onPress={handleImagePicker}
-            >
-              <Icon name="camera-plus" size={32} color={theme.colors.primary} />
-              <Text style={styles.addImageText}>Add Image</Text>
-            </TouchableOpacity>
-            {selectedImages.map((image, index) => (
-              <View key={index} style={styles.imageContainer}>
-                <Image source={{ uri: image }} style={styles.productImage} />
-                <TouchableOpacity
-                  style={styles.removeImageButton}
-                  onPress={() => {
-                    const newImages = [...selectedImages];
-                    newImages.splice(index, 1);
-                    setSelectedImages(newImages);
-                  }}
-                >
-                  <Icon name="close" size={20} color={theme.colors.text.inverse} />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
+        <ImageUploadComponent
+          images={formData.images}
+          onImagesChange={(images) => setFormData({ ...formData, images })}
+          maxImages={5}
+          title="Product Images"
+        />
 
         {/* Basic Information */}
         <View style={styles.section}>
@@ -191,40 +215,19 @@ const AddEditProductScreen = () => {
             {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Category *</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoryList}
-            >
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category}
-                  style={[
-                    styles.categoryButton,
-                    formData.category === category && styles.selectedCategory,
-                  ]}
-                  onPress={() => {
-                    setFormData({ ...formData, category });
-                    if (errors.category) setErrors({ ...errors, category: null });
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.categoryButtonText,
-                      formData.category === category && styles.selectedCategoryText,
-                    ]}
-                  >
-                    {category}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            {errors.category && (
-              <Text style={styles.errorText}>{errors.category}</Text>
-            )}
-          </View>
+          <SearchableDropdown
+            data={categories}
+            value={formData.category}
+            onSelect={(category) => {
+              setFormData({ ...formData, category });
+              if (errors.category) setErrors({ ...errors, category: null });
+            }}
+            placeholder="Select a category"
+            label="Category *"
+            allowOther={true}
+            otherLabel="Other"
+            error={errors.category}
+          />
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Description</Text>
@@ -241,13 +244,39 @@ const AddEditProductScreen = () => {
           </View>
         </View>
 
+        {/* Suggested Products */}
+        {showSuggestions && suggestedProducts.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Suggested Products</Text>
+            <Text style={styles.sectionSubtitle}>
+              Click on a suggestion to auto-fill the form
+            </Text>
+            {suggestedProducts.map((product) => (
+              <TouchableOpacity
+                key={product.id}
+                style={styles.suggestionCard}
+                onPress={() => applySuggestedProduct(product)}
+              >
+                <View style={styles.suggestionInfo}>
+                  <Text style={styles.suggestionName}>{product.name}</Text>
+                  <Text style={styles.suggestionDescription}>
+                    {product.description}
+                  </Text>
+                  <Text style={styles.suggestionPrice}>₹{product.price}/{product.unit}</Text>
+                </View>
+                <Icon name="arrow-right" size={20} color={theme.colors.primary} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         {/* Pricing and Stock */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Pricing and Stock</Text>
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-              <Text style={styles.label}>Price (₹) *</Text>
+              <Text style={styles.label}>Current Price (₹) *</Text>
               <TextInput
                 style={[styles.input, errors.price && styles.inputError]}
                 placeholder="0.00"
@@ -331,17 +360,6 @@ const AddEditProductScreen = () => {
           <Text style={styles.sectionTitle}>Additional Options</Text>
 
           <View style={styles.switchRow}>
-            <Text style={styles.switchLabel}>Home Delivery Available</Text>
-            <Switch
-              value={formData.isDeliveryAvailable}
-              onValueChange={(value) =>
-                setFormData({ ...formData, isDeliveryAvailable: value })
-              }
-              trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
-            />
-          </View>
-
-          <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>Mark as Best Seller</Text>
             <Switch
               value={formData.isBestSeller}
@@ -362,10 +380,21 @@ const AddEditProductScreen = () => {
               trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
             />
           </View>
+
+          <View style={styles.switchRow}>
+            <Text style={styles.switchLabel}>Home Delivery Available</Text>
+            <Switch
+              value={formData.isDeliveryAvailable}
+              onValueChange={(value) =>
+                setFormData({ ...formData, isDeliveryAvailable: value })
+              }
+              trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
+            />
+          </View>
         </View>
 
         {/* Tags */}
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tags</Text>
           <View style={styles.tagsContainer}>
             {formData.tags.map((tag) => (
@@ -388,7 +417,7 @@ const AddEditProductScreen = () => {
               <Text style={styles.addTagText}>Add Tag</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </View> */}
       </View>
     </ScrollView>
   );
@@ -439,6 +468,40 @@ const createStyles = (theme) =>
       fontWeight: '600',
       color: theme.colors.text.primary,
       marginBottom: 16,
+    },
+    sectionSubtitle: {
+      fontSize: 14,
+      color: theme.colors.text.secondary,
+      marginBottom: 12,
+    },
+    suggestionCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.s,
+      padding: 12,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    suggestionInfo: {
+      flex: 1,
+    },
+    suggestionName: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.text.primary,
+      marginBottom: 4,
+    },
+    suggestionDescription: {
+      fontSize: 14,
+      color: theme.colors.text.secondary,
+      marginBottom: 4,
+    },
+    suggestionPrice: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.primary,
     },
     imagesSection: {
       marginBottom: 24,

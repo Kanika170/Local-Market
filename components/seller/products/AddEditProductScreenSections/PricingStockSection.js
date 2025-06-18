@@ -18,7 +18,7 @@ const PricingStockSection = ({
 
       <View style={styles.row}>
         <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-          <Text style={styles.label}>Price (₹) *</Text>
+          <Text style={styles.label}>Current Price (₹) *</Text>
           <TextInput
             style={[styles.input, errors.price && styles.inputError]}
             placeholder="0.00"

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import HomeIcon from './icons/HomeIcon';
 import SearchIcon from './icons/SearchIcon';
@@ -8,13 +9,11 @@ import ProfileIcon from './icons/ProfileIcon';
 
 const BottomNavigationBar = ({ navigation, activeTab }) => {
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, insets);
 
   return (
-    <View style={[
-      styles.container,
-      { paddingBottom: Platform.OS === 'ios' ? 34 : 10 }
-    ]}>
+    <View style={styles.container}>
       <TouchableOpacity 
         style={styles.navItem}
         onPress={() => navigation.navigate('CustomerHomeFeed')}
@@ -74,13 +73,27 @@ const BottomNavigationBar = ({ navigation, activeTab }) => {
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
+const createStyles = (theme, insets) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: theme.colors.background,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
     paddingTop: theme.spacing.s,
+    paddingHorizontal: Math.max(insets.left, theme.spacing.xs),
+    paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 16),
+    paddingRight: Math.max(insets.right, theme.spacing.xs),
+    elevation: 8,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // Ensure the navigation bar is always above other content
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
   },
   navItem: {
     flex: 1,

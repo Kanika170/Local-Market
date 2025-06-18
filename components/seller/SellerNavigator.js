@@ -19,6 +19,7 @@ import AddEditProductScreen from './products/AddEditProductScreen';
 
 // Feed & Posts
 import CreatePostScreen from './feed/CreatePostScreen';
+import ShopPostsScreen from './feed/ShopPostsScreen';
 
 // Chat & Communication
 import SellerChatDashboardScreen from './chat/SellerChatDashboardScreen';
@@ -60,10 +61,12 @@ const productScreens = [
   { name: 'ProductsList', component: ProductListScreen },
   { name: 'AddProduct', component: AddEditProductScreen },
   { name: 'EditProduct', component: AddEditProductScreen },
+  { name: 'ProductShow', component: require('./products/ProductShowScreen').default },
   { name: 'StockManagement', component: StockManagementScreen },
 ];
 
 const postScreens = [
+  { name: 'ShopPosts', component: ShopPostsScreen },
   { name: 'CreatePost', component: CreatePostScreen },
 ];
 
