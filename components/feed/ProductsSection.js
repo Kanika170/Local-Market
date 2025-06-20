@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { useLocation } from '../../context/LocationContext';
 
@@ -101,7 +101,18 @@ const ProductsSection = ({ products, onProductPress }) => {
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
+const createStyles = (theme) => {
+  const { width: screenWidth } = Dimensions.get('window');
+  const isTablet = screenWidth > 768;
+  const cardPadding = theme.spacing.m;
+  const cardMargin = theme.spacing.m;
+  const availableWidth = screenWidth - (cardPadding * 2);
+  
+  // Calculate number of columns based on screen width
+  const numColumns = isTablet ? 2 : 1;
+  const cardWidth = numColumns > 1 ? (availableWidth - cardMargin) / numColumns : availableWidth;
+  
+  return StyleSheet.create({
   container: {
     marginBottom: theme.spacing.xl,
   },
@@ -119,7 +130,10 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   productsGrid: {
-    paddingHorizontal: theme.spacing.m,
+    paddingHorizontal: cardPadding,
+    flexDirection: numColumns > 1 ? 'row' : 'column',
+    flexWrap: numColumns > 1 ? 'wrap' : 'nowrap',
+    justifyContent: numColumns > 1 ? 'space-between' : 'flex-start',
   },
   productCard: {
     backgroundColor: theme.components.card.backgroundColor,
@@ -133,6 +147,9 @@ const createStyles = (theme) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    width: numColumns > 1 ? cardWidth : '100%',
+    marginRight: numColumns > 1 ? cardMargin / 2 : 0,
+    marginLeft: numColumns > 1 ? cardMargin / 2 : 0,
   },
   nearbyProductCard: {
     borderColor: theme.colors.primary,
@@ -155,7 +172,7 @@ const createStyles = (theme) => StyleSheet.create({
     position: 'relative',
   },
   productImage: {
-    fontSize: 60,
+    fontSize: Math.min(60, screenWidth * 0.15), // Scale image size based on screen width
     textAlign: 'center',
   },
   availabilityBadge: {
@@ -225,6 +242,7 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: '500',
   },
-});
+  });
+};
 
 export default ProductsSection;

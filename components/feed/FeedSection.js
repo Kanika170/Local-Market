@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { useLocation } from '../../context/LocationContext';
 import InteractionBar from '../common/InteractionBar';
@@ -147,7 +147,12 @@ const FeedSection = ({ feedData, onProductPress, onShopPress }) => {
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
+const createStyles = (theme) => {
+  const { width: screenWidth } = Dimensions.get('window');
+  const isTablet = screenWidth > 768;
+  const cardPadding = isTablet ? theme.spacing.l : theme.spacing.m;
+  
+  return StyleSheet.create({
   container: {
     marginBottom: theme.spacing.l,
   },
@@ -167,10 +172,12 @@ const createStyles = (theme) => StyleSheet.create({
   feedItem: {
     backgroundColor: theme.components.card.backgroundColor,
     borderRadius: theme.borderRadius.m,
-    padding: theme.spacing.m,
+    padding: cardPadding,
     marginBottom: theme.spacing.m,
     borderWidth: 1,
     borderColor: theme.components.card.borderColor,
+    maxWidth: isTablet ? screenWidth * 0.8 : '100%',
+    alignSelf: isTablet ? 'center' : 'stretch',
   },
   shopFeedItem: {
     borderColor: theme.colors.primary,
@@ -242,13 +249,14 @@ const createStyles = (theme) => StyleSheet.create({
     marginBottom: theme.spacing.m,
   },
   feedImage: {
-    fontSize: 60,
+    fontSize: Math.min(60, screenWidth * 0.15), // Scale image size based on screen width
   },
   productContainer: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.m,
-    padding: theme.spacing.m,
+    padding: cardPadding,
     marginBottom: theme.spacing.m,
+    maxWidth: '100%',
   },
   productInfo: {
     alignItems: 'center',
@@ -271,10 +279,10 @@ const createStyles = (theme) => StyleSheet.create({
   offerContainer: {
     backgroundColor: theme.colors.secondary + '20',
     borderRadius: theme.borderRadius.s,
-    padding: theme.spacing.m,
-    flexDirection: 'row',
+    padding: cardPadding,
+    flexDirection: isTablet ? 'row' : 'column',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: isTablet ? 'center' : 'stretch',
     marginBottom: theme.spacing.m,
   },
   offerBadge: {
@@ -308,12 +316,16 @@ const createStyles = (theme) => StyleSheet.create({
     borderRadius: theme.borderRadius.xs,
     borderWidth: 1,
     borderColor: theme.colors.secondary,
+    marginTop: isTablet ? 0 : theme.spacing.s,
+    alignSelf: isTablet ? 'auto' : 'center',
+    minWidth: isTablet ? 'auto' : 120,
   },
   offerButtonText: {
     color: theme.colors.secondary,
     ...theme.typography.caption,
     fontWeight: '500',
   },
-});
+  });
+};
 
 export default FeedSection;

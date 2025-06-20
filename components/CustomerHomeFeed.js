@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Platform, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
@@ -19,6 +19,15 @@ import { generateFeedData, nearbyEvents, popularProducts } from '../data/feedDat
 const CustomerHomeFeed = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedShop, setSelectedShop] = useState(null);
+  const [dimensions, setDimensions] = useState(Dimensions.get('window'));
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setDimensions(window);
+    });
+
+    return () => subscription?.remove();
+  }, []);
   const navigation = useNavigation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -123,7 +132,12 @@ const CustomerHomeFeed = () => {
   );
 };
 
-const createStyles = (theme, insets) => StyleSheet.create({
+const createStyles = (theme, insets) => {
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const isLandscape = screenWidth > screenHeight;
+  const isTablet = screenWidth > 768;
+  
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -133,7 +147,12 @@ const createStyles = (theme, insets) => StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 100 : 85),
+    paddingHorizontal: isTablet ? theme.spacing.xl : theme.spacing.m,
+    maxWidth: isTablet ? 1024 : undefined,
+    alignSelf: isTablet ? 'center' : undefined,
+    width: isTablet ? '100%' : undefined,
   },
-});
+  });
+};
 
 export default CustomerHomeFeed;

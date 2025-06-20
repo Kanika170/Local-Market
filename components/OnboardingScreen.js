@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import PhoneIllustration from './PhoneIllustration';
@@ -38,49 +38,55 @@ const OnboardingScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Page Indicators */}
-      <PageIndicators currentPage={0} totalPages={3} />
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Page Indicators */}
+        <PageIndicators currentPage={0} totalPages={3} />
 
-      {/* Phone Illustration */}
-      <View style={styles.illustrationContainer}>
-        <PhoneIllustration />
-      </View>
-
-      {/* Title */}
-      <Text style={styles.title}>Find the Best Prices</Text>
-
-      {/* Subtitle */}
-      <Text style={styles.subtitle}>
-        Compare prices across multiple stores in your area to ensure you're always getting the best deals on your groceries and essentials.
-      </Text>
-
-      {/* Features List */}
-      <View style={styles.featuresContainer}>
-        <View style={styles.featureItem}>
-          <View style={styles.featureIcon}>
-            <View style={styles.tagIcon} />
-          </View>
-          <Text style={styles.featureText}>Price comparison across local stores</Text>
+        {/* Phone Illustration */}
+        <View style={styles.illustrationContainer}>
+          <PhoneIllustration />
         </View>
 
-        <View style={styles.featureItem}>
-          <View style={styles.featureIcon}>
-            <View style={styles.bellIcon} />
-          </View>
-          <Text style={styles.featureText}>Price drop alerts for your favorites</Text>
-        </View>
+        {/* Title */}
+        <Text style={styles.title}>Find the Best Prices</Text>
 
-        <View style={styles.featureItem}>
-          <View style={styles.featureIcon}>
-            <Text style={styles.percentIcon}>%</Text>
-          </View>
-          <Text style={styles.featureText}>Exclusive deals and discounts</Text>
-        </View>
-      </View>
+        {/* Subtitle */}
+        <Text style={styles.subtitle}>
+          Compare prices across multiple stores in your area to ensure you're always getting the best deals on your groceries and essentials.
+        </Text>
 
-      {/* Bottom Buttons */}
+        {/* Features List */}
+        <View style={styles.featuresContainer}>
+          <View style={styles.featureItem}>
+            <View style={styles.featureIcon}>
+              <View style={styles.tagIcon} />
+            </View>
+            <Text style={styles.featureText}>Price comparison across local stores</Text>
+          </View>
+
+          <View style={styles.featureItem}>
+            <View style={styles.featureIcon}>
+              <View style={styles.bellIcon} />
+            </View>
+            <Text style={styles.featureText}>Price drop alerts for your favorites</Text>
+          </View>
+
+          <View style={styles.featureItem}>
+            <View style={styles.featureIcon}>
+              <Text style={styles.percentIcon}>%</Text>
+            </View>
+            <Text style={styles.featureText}>Exclusive deals and discounts</Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Bottom Buttons - Fixed at bottom */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity onPress={handleSkip}>
+        <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
           <Text style={styles.skipText}>Skip to Login</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
@@ -91,17 +97,28 @@ const OnboardingScreen = () => {
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
+const createStyles = (theme) => {
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const isSmallScreen = screenHeight < 700;
+  const isTablet = screenWidth > 768;
+  
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    paddingHorizontal: theme.spacing.l,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: isTablet ? theme.spacing.xxl : theme.spacing.l,
     paddingTop: theme.spacing.xxl,
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: theme.spacing.l,
+    minHeight: screenHeight - 120, // Ensure content takes most of screen
   },
   illustrationContainer: {
     alignItems: 'center',
-    marginVertical: theme.spacing.l,
+    marginVertical: isSmallScreen ? theme.spacing.m : theme.spacing.l,
   },
   title: {
     ...theme.typography.h1,
@@ -114,11 +131,16 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: theme.spacing.xl,
+    marginBottom: isSmallScreen ? theme.spacing.l : theme.spacing.xl,
     paddingHorizontal: theme.spacing.s,
+    maxWidth: isTablet ? 600 : undefined,
+    alignSelf: isTablet ? 'center' : undefined,
   },
   featuresContainer: {
-    marginBottom: theme.spacing.s,
+    marginBottom: theme.spacing.l,
+    maxWidth: isTablet ? 600 : undefined,
+    alignSelf: isTablet ? 'center' : undefined,
+    width: '100%',
   },
   featureItem: {
     flexDirection: 'row',
@@ -164,8 +186,18 @@ const createStyles = (theme) => StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 'auto',
-    marginBottom: theme.spacing.xxl,
+    paddingHorizontal: isTablet ? theme.spacing.xxl : theme.spacing.l,
+    paddingVertical: theme.spacing.l,
+    backgroundColor: theme.colors.background,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    maxWidth: isTablet ? 600 : undefined,
+    alignSelf: isTablet ? 'center' : undefined,
+    width: '100%',
+  },
+  skipButton: {
+    paddingVertical: theme.spacing.m,
+    paddingHorizontal: theme.spacing.s,
   },
   skipText: {
     ...theme.typography.button,
@@ -177,12 +209,18 @@ const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: theme.spacing.xl,
     borderRadius: theme.borderRadius.m,
     minWidth: 120,
+    elevation: 2,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   nextText: {
     ...theme.typography.button,
     color: theme.colors.text.primary,
     textAlign: 'center',
   },
-});
+  });
+};
 
 export default OnboardingScreen;

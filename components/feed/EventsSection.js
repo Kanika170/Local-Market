@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { useLocation } from '../../context/LocationContext';
 
@@ -76,7 +76,11 @@ const EventsSection = ({ events, onEventPress }) => {
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
+const createStyles = (theme) => {
+  const { width: screenWidth } = Dimensions.get('window');
+  const cardWidth = Math.min(280, screenWidth * 0.75); // Card width is 75% of screen width, max 280px
+  
+  return StyleSheet.create({
   container: {
     marginBottom: theme.spacing.l,
   },
@@ -100,20 +104,21 @@ const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: theme.spacing.m,
   },
   eventCard: {
-    width: 280,
+    width: cardWidth,
     backgroundColor: theme.components.card.backgroundColor,
     borderRadius: theme.borderRadius.m,
     marginRight: theme.spacing.m,
     borderWidth: 1,
     borderColor: theme.components.card.borderColor,
     overflow: 'hidden',
+    flexShrink: 0, // Prevent card from shrinking in ScrollView
   },
   nearbyEventCard: {
     borderColor: theme.colors.primary,
     borderWidth: 2,
   },
   eventImageContainer: {
-    height: 120,
+    height: cardWidth * 0.43, // Maintain aspect ratio based on card width
     backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
@@ -163,6 +168,7 @@ const createStyles = (theme) => StyleSheet.create({
     ...theme.typography.caption,
     color: theme.colors.text.secondary,
   },
-});
+  });
+};
 
 export default EventsSection;
