@@ -46,7 +46,16 @@ const SplashScreen = ({ navigation }) => {
       duration: 3000,
       useNativeDriver: false,
     }).start(() => {
-      navigation.replace('OnboardingScreen'); // Navigate to OnboardingScreen
+      try {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'OnboardingScreen' }],
+        });
+      } catch (error) {
+        console.warn('Navigation error:', error);
+        // Fallback navigation if reset fails
+        navigation.replace('OnboardingScreen');
+      }
     });
 
     animateDots();
@@ -98,7 +107,18 @@ const SplashScreen = ({ navigation }) => {
       {/* Skip Button */}
       <TouchableOpacity 
         style={styles.skipButton} 
-        onPress={() => navigation.replace('OnboardingScreen')}
+        onPress={() => {
+          try {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'OnboardingScreen' }],
+            });
+          } catch (error) {
+            console.warn('Navigation error:', error);
+            // Fallback navigation if reset fails
+            navigation.replace('OnboardingScreen');
+          }
+        }}
       >
         <Text style={styles.skipText}>Skip</Text>
       </TouchableOpacity>

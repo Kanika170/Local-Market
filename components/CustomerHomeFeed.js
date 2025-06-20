@@ -1,48 +1,65 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import BottomNavigationBar from './BottomNavigationBar';
+import SafeAreaWrapper from './common/SafeAreaWrapper';
+import { FeedInteractionProvider } from '../context/FeedInteractionContext';
+import { ShoppingListProvider } from '../context/ShoppingListContext';
+import InteractionBar from './common/InteractionBar';
+import CommentModal from './common/CommentModal';
 import ProductDetailScreen from './ProductDetailScreen';
 import ShopDetailScreen from './ShopDetailScreen';
+import { generateFeedData, nearbyEvents, popularProducts } from '../data/feedData';
 
 const CustomerHomeFeed = () => {
+  const [selectedPostId, setSelectedPostId] = useState(null);
+  const [isCommentModalVisible, setCommentModalVisible] = useState(false);
   const navigation = useNavigation();
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, insets);
   
   const [activeTab, setActiveTab] = useState('Home');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedShop, setSelectedShop] = useState(null);
 
   const handleProductPress = (product) => {
-    product = {
-      id: 1,
-      shop: 'Urban Outfitters',
-      category: 'Fashion & Apparel',
-      name: 'Leather Crossbody Bag',
-      price: '$49.99',
-      discount: '20% Off',
-      description: 'Premium leather crossbody bag with adjustable strap and gold hardware.',
-      rating: 4.5,
-      reviews: 124,
-      image: require('../assets/shopping bag.jpeg'),
-    }
-    setSelectedProduct(product || null);
+    // Enhanced product data for detail screen
+    const enhancedProduct = {
+      ...product,
+      id: product.id || Date.now(),
+      shop: product.shop || 'Local Shop',
+      category: product.category || 'General',
+      name: product.name || 'Product',
+      price: product.price || '₹0',
+      description: product.description || 'No description available',
+      rating: product.rating || 4.0,
+      reviews: product.reviews || 0,
+      image: product.image || '📦',
+      inStock: product.inStock !== false,
+      stockCount: product.stockCount || 10,
+      features: product.features || [],
+      specifications: product.specifications || {}
+    };
+    setSelectedProduct(enhancedProduct);
   };
 
   const handleShopPress = (shop) => {
     const shopData = {
-      id: 1,
-      name: 'Green Grocery Store',
-      rating: 4.5,
-      reviews: 256,
+      id: shop.id || Date.now(),
+      name: shop.name || 'Local Shop',
+      rating: shop.rating || 4.0,
+      reviews: shop.reviews || 0,
       location: '123 Market Street, Downtown',
       distance: '2.3 miles away',
       hours: {
         weekday: '8:00 AM - 9:00 PM',
         weekend: '9:00 AM - 7:00 PM'
       },
+      avatar: shop.avatar || '🏪',
+      verified: shop.verified || false,
       image: require('../assets/grocery shop.jpeg'),
     };
     setSelectedShop(shopData);
@@ -66,86 +83,11 @@ const CustomerHomeFeed = () => {
     );
   }
 
-  // Static data for the feed
-  const feedData = [
-    {
-      id: 1,
-      type: 'user_post',
-      user: {
-        name: 'Sarah Johnson',
-        type: 'Customer',
-        time: '35 min ago',
-        avatar: '👩‍💼'
-      },
-      content: 'Looking for organic honey in the downtown area. Any shops have special offers this week?',
-      tags: ['#organic', '#honey', '#downtown'],
-      comments: 3
-    },
-    {
-      id: 2,
-      type: 'shop_offer',
-      shop: {
-        name: 'Green Market',
-        verified: true,
-        time: '1 hour ago',
-        avatar: '🏪'
-      },
-      content: 'Weekend special! 20% off on all organic produce. Fresh vegetables and fruits just arrived!',
-      image: '🥬🥕🍎',
-      offer: {
-        title: 'Weekend Offer',
-        validity: 'Valid until Sunday'
-      },
-      comments: 8
-    }
-  ];
-
-  const nearbyEvents = [
-    {
-      id: 1,
-      title: 'Summer Sale',
-      subtitle: 'Up to 50% off at Fashion',
-      distance: '0.5 miles away',
-      image: '👕'
-    },
-    {
-      id: 2,
-      title: 'Tech Expo',
-      subtitle: 'Latest gadgets at TechWin',
-      distance: '1.2 miles away',
-      image: '📱'
-    }
-  ];
-
-  const popularProducts = [
-    {
-      id: 1,
-      shop: 'Urban Outfitters',
-      category: 'Fashion & Apparel',
-      name: 'Leather Crossbody Bag',
-      price: '$49.99',
-      discount: '20% Off',
-      description: 'Premium leather crossbody bag with adjustable strap and gold hardware.',
-      rating: 4.5,
-      reviews: 124,
-      image: '👜'
-    },
-    {
-      id: 2,
-      shop: 'TechWorld',
-      category: 'Electronics',
-      name: 'Wireless Headphones',
-      price: '$129.99',
-      tag: 'NEW',
-      description: 'Noise-cancelling wireless headphones with 30-hour battery life.',
-      rating: 4.8,
-      reviews: 89,
-      image: '🎧'
-    }
-  ];
+  // Generate dynamic feed data with 100+ items
+  const feedData = generateFeedData();
 
   const renderFeedItem = (item) => {
-    const isShopPost = item.type === 'shop_offer' || item.type === 'shop_response';
+    const isShopPost = item.type !== 'user_post';
     const author = isShopPost ? item.shop : item.user;
 
     return (
@@ -154,7 +96,7 @@ const CustomerHomeFeed = () => {
           <Text style={styles.avatar}>{author.avatar}</Text>
           <TouchableOpacity 
             style={styles.authorInfo}
-            onPress={() => isShopPost ? handleShopPress(item) : null}
+            onPress={() => isShopPost ? handleShopPress(author) : null}
           >
             <View style={styles.authorNameRow}>
               <Text style={styles.authorName}>{author.name}</Text>
@@ -177,9 +119,25 @@ const CustomerHomeFeed = () => {
         )}
 
         {item.image && (
-          <View style={styles.imageContainer}>
+          <TouchableOpacity 
+            style={styles.imageContainer}
+            onPress={() => item.product && handleProductPress(item.product)}
+          >
             <Text style={styles.feedImage}>{item.image}</Text>
-          </View>
+          </TouchableOpacity>
+        )}
+
+        {item.product && (
+          <TouchableOpacity 
+            style={styles.productContainer}
+            onPress={() => handleProductPress(item.product)}
+          >
+            <View style={styles.productInfo}>
+              <Text style={styles.productName}>{item.product.name}</Text>
+              <Text style={styles.productPrice}>{item.product.price}</Text>
+              <Text style={styles.productCategory}>{item.product.category}</Text>
+            </View>
+          </TouchableOpacity>
         )}
 
         {item.offer && (
@@ -189,23 +147,37 @@ const CustomerHomeFeed = () => {
               <Text style={styles.offerDetails}>
                 {item.offer.validity || item.offer.deal}
               </Text>
+              {item.offer.originalPrice && (
+                <Text style={styles.originalPrice}>
+                  Was: {item.offer.originalPrice}
+                </Text>
+              )}
+              {item.offer.discountedPrice && (
+                <Text style={styles.discountedPrice}>
+                  Now: {item.offer.discountedPrice}
+                </Text>
+              )}
             </View>
-            <TouchableOpacity style={styles.offerButton}>
+            <TouchableOpacity 
+              style={styles.offerButton}
+              onPress={() => item.product && handleProductPress(item.product)}
+            >
               <Text style={styles.offerButtonText}>
-                {item.offer.deal ? 'Claim' : 'Save'}
+                View Deal
               </Text>
             </TouchableOpacity>
           </View>
         )}
 
-        <View style={styles.feedActions}>
-          <TouchableOpacity>
-            <Text style={styles.actionText}>Comment ({item.comments})</Text>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={styles.actionText}>Share</Text>
-          </TouchableOpacity>
-        </View>
+        <InteractionBar
+          postId={item.id}
+          initialLikes={item.likes || 0}
+          initialComments={item.comments || 0}
+          onCommentPress={() => {
+            setSelectedPostId(item.id);
+            setCommentModalVisible(true);
+          }}
+        />
       </View>
     );
   };
@@ -244,71 +216,90 @@ const CustomerHomeFeed = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerIcon}>🛍️</Text>
-          <Text style={styles.headerTitle}>Shopping Companion</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity 
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('ChatScreen')}
-          >
-            <Text style={styles.headerIcon}>💬</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('NotificationScreen')}
-          >
-            <Text style={styles.headerIcon}>🔔</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Feed</Text>
-        {feedData.map(renderFeedItem)}
-
-        <Text style={styles.sectionTitle}>Nearby Events</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.eventsContainer}>
-          {nearbyEvents.map((event) => (
-            <TouchableOpacity 
-              key={event.id} 
-              style={styles.eventCard}
-              onPress={() => handleProductPress(event)}
-            >
-              <Text style={styles.eventImage}>{event.image}</Text>
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-                <Text style={styles.eventDistance}>{event.distance}</Text>
+    <ShoppingListProvider>
+      <FeedInteractionProvider>
+        <SafeAreaWrapper edges={['top']} statusBarStyle="light-content">
+          <View style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={styles.headerLeft}>
+                <Text style={styles.headerIcon}>🛍️</Text>
+                <Text style={styles.headerTitle}>Shopping Companion</Text>
               </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+              <View style={styles.headerRight}>
+                <TouchableOpacity 
+                  style={styles.headerButton}
+                  onPress={() => navigation.navigate('ChatScreen')}
+                >
+                  <Text style={styles.headerIcon}>💬</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.headerButton}
+                  onPress={() => navigation.navigate('NotificationScreen')}
+                >
+                  <Text style={styles.headerIcon}>🔔</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-        <Text style={styles.sectionTitle}>Popular Products</Text>
-        <View style={styles.productsGrid}>
-          {popularProducts.map(renderProductCard)}
-        </View>
-      </ScrollView>
+            {/* Content */}
+            <ScrollView 
+              style={styles.content} 
+              contentContainerStyle={styles.contentContainer}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={styles.sectionTitle}>Feed</Text>
+              {feedData.map(renderFeedItem)}
 
-      <BottomNavigationBar navigation={navigation} activeTab="Home" />
-    </View>
+              <Text style={styles.sectionTitle}>Nearby Events</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.eventsContainer}>
+                {nearbyEvents.map((event) => (
+                  <TouchableOpacity 
+                    key={event.id} 
+                    style={styles.eventCard}
+                    onPress={() => handleProductPress(event)}
+                  >
+                    <Text style={styles.eventImage}>{event.image}</Text>
+                    <View style={styles.eventInfo}>
+                      <Text style={styles.eventTitle}>{event.title}</Text>
+                      <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
+                      <Text style={styles.eventDistance}>{event.distance}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <Text style={styles.sectionTitle}>Popular Products</Text>
+              <View style={styles.productsGrid}>
+                {popularProducts.map(renderProductCard)}
+              </View>
+            </ScrollView>
+
+            <BottomNavigationBar navigation={navigation} activeTab="Home" />
+            
+            <CommentModal
+              visible={isCommentModalVisible}
+              postId={selectedPostId}
+              onClose={() => {
+                setCommentModalVisible(false);
+                setSelectedPostId(null);
+              }}
+            />
+          </View>
+        </SafeAreaWrapper>
+      </FeedInteractionProvider>
+    </ShoppingListProvider>
   );
 };
 
-const createStyles = (theme) => StyleSheet.create({
+const createStyles = (theme, insets) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
   header: {
     backgroundColor: theme.colors.primary,
-    paddingTop: 50,
+    paddingTop: theme.spacing.m,
     paddingBottom: theme.spacing.m,
     paddingHorizontal: theme.spacing.l,
     flexDirection: 'row',
@@ -343,7 +334,9 @@ const createStyles = (theme) => StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: theme.spacing.m,
-    paddingBottom: Platform.OS === 'ios' ? 90 : 65,
+  },
+  contentContainer: {
+    paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 100 : 85),
   },
   sectionTitle: {
     ...theme.typography.h3,
@@ -421,6 +414,30 @@ const createStyles = (theme) => StyleSheet.create({
   feedImage: {
     fontSize: 60,
   },
+  productContainer: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.m,
+    padding: theme.spacing.m,
+    marginBottom: theme.spacing.m,
+  },
+  productInfo: {
+    alignItems: 'center',
+  },
+  productName: {
+    ...theme.typography.body1,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+  },
+  productPrice: {
+    ...theme.typography.h3,
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.xs,
+  },
+  productCategory: {
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+  },
   offerContainer: {
     backgroundColor: theme.colors.secondary + '20',
     borderRadius: theme.borderRadius.s,
@@ -442,6 +459,18 @@ const createStyles = (theme) => StyleSheet.create({
     ...theme.typography.caption,
     color: theme.colors.text.secondary,
   },
+  originalPrice: {
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+    textDecorationLine: 'line-through',
+    marginTop: 4,
+  },
+  discountedPrice: {
+    ...theme.typography.body2,
+    color: theme.colors.secondary,
+    fontWeight: '600',
+    marginTop: 2,
+  },
   offerButton: {
     backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.m,
@@ -454,17 +483,6 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.colors.secondary,
     ...theme.typography.caption,
     fontWeight: '500',
-  },
-  feedActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: theme.spacing.m,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.surface,
-  },
-  actionText: {
-    color: theme.colors.text.secondary,
-    ...theme.typography.body2,
   },
   eventsContainer: {
     marginBottom: theme.spacing.l,
@@ -523,10 +541,6 @@ const createStyles = (theme) => StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.text.primary,
   },
-  productCategory: {
-    ...theme.typography.caption,
-    color: theme.colors.text.secondary,
-  },
   productContent: {
     marginBottom: theme.spacing.m,
   },
@@ -537,17 +551,6 @@ const createStyles = (theme) => StyleSheet.create({
   },
   productDetails: {
     flex: 1,
-  },
-  productName: {
-    ...theme.typography.body1,
-    fontWeight: '600',
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xs,
-  },
-  productPrice: {
-    ...theme.typography.h3,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xs,
   },
   productDiscount: {
     ...theme.typography.caption,

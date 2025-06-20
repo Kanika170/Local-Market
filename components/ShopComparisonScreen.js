@@ -397,7 +397,7 @@ const createStyles = (theme) => StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: theme.components.card.borderColor,
+    borderColor: theme.colors.border,
   },
   listName: {
     fontSize: 20,

@@ -11,11 +11,29 @@ const OnboardingScreen = () => {
   const styles = createStyles(theme);
 
   const handleNext = () => {
-    navigation.replace('LoginRegisterScreen'); // Navigate to Login/Register screen
+    try {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'LoginRegisterScreen' }],
+      });
+    } catch (error) {
+      console.warn('Navigation error:', error);
+      // Fallback navigation if reset fails
+      navigation.replace('LoginRegisterScreen');
+    }
   };
 
   const handleSkip = () => {
-    navigation.replace('LoginRegisterScreen'); // Navigate to Login/Register screen
+    try {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'LoginRegisterScreen' }],
+      });
+    } catch (error) {
+      console.warn('Navigation error:', error);
+      // Fallback navigation if reset fails
+      navigation.replace('LoginRegisterScreen');
+    }
   };
 
   return (
@@ -100,7 +118,7 @@ const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: theme.spacing.s,
   },
   featuresContainer: {
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.s,
   },
   featureItem: {
     flexDirection: 'row',

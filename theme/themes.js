@@ -64,6 +64,15 @@ export const lightTheme = {
       fontWeight: '500',
     },
   },
+  shadows: {
+    default: {
+      elevation: 2,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    }
+  },
   components: {
     button: {
       primary: {

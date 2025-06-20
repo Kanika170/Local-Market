@@ -1,12 +1,74 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme/useTheme';
 import PageIndicators from './PageIndicators';
 import BottomNavigationBar from './BottomNavigationBar';
+import ShopReviewModal from './common/ShopReviewModal';
 
 
 const ShopDetailScreen = ({ shop, onBack }) => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+  const [isReviewModalVisible, setReviewModalVisible] = useState(false);
+  const [likedPosts, setLikedPosts] = useState(new Set());
+
+  const handleLikePost = (postId) => {
+    setLikedPosts(prev => {
+      const newLikedPosts = new Set(prev);
+      if (newLikedPosts.has(postId)) {
+        newLikedPosts.delete(postId);
+      } else {
+        newLikedPosts.add(postId);
+      }
+      return newLikedPosts;
+    });
+  };
+
+  const handleCommentPress = (postId) => {
+    navigation.navigate('PostComments', { postId });
+  };
+
+  const handleSharePost = (post) => {
+    // Here you would typically implement share functionality
+    console.log('Sharing post:', post.content);
+  };
+  const [shopPosts, setShopPosts] = useState([
+    {
+      id: 1,
+      type: 'product_showcase',
+      content: 'Check out our fresh organic produce!',
+      image: '🥬',
+      timestamp: '2 hours ago',
+      likes: 12,
+      comments: 3
+    },
+    {
+      id: 2,
+      type: 'shop_offer',
+      content: 'Weekend special: 20% off on all dairy products!',
+      image: '🥛',
+      timestamp: '1 day ago',
+      likes: 24,
+      comments: 8
+    },
+    {
+      id: 3,
+      type: 'shop_update',
+      content: 'New items in stock! Fresh artisanal bread delivered daily.',
+      image: '🍞',
+      timestamp: '2 days ago',
+      likes: 18,
+      comments: 5
+    }
+  ]);
+
+  const handleReviewSubmit = (reviewData) => {
+    // Here you would typically send this to your backend
+    console.log('New review:', reviewData);
+    setReviewModalVisible(false);
+  };
   const categories = [
     'Groceries', 'Fresh Produce', 'Dairy', 'Beverages', 'Snacks', 'Household'
   ];
@@ -150,6 +212,7 @@ const ShopDetailScreen = ({ shop, onBack }) => {
               <TouchableOpacity 
                 key={index} 
                 style={styles.categoryButton}
+                onPress={() => navigation.navigate('CategoryProducts', { category })}
               >
                 <Text style={styles.categoryText}>{category}</Text>
               </TouchableOpacity>
@@ -160,7 +223,7 @@ const ShopDetailScreen = ({ shop, onBack }) => {
           <View style={styles.featuredSection}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Featured Products</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('ShopProducts', { shopId: shop?.id })}>
                 <Text style={styles.seeAllButton}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -170,12 +233,23 @@ const ShopDetailScreen = ({ shop, onBack }) => {
               style={styles.productsContainer}
             >
               {featuredProducts.map((product) => (
-                <TouchableOpacity key={product.id} style={styles.productCard}>
+                <TouchableOpacity 
+                  key={product.id} 
+                  style={styles.productCard}
+                  onPress={() => navigation.navigate('ProductDetail', { product })}
+                >
                   <Image source={product.image} style={styles.productImage} />
                   <View style={styles.productInfo}>
                     <Text style={styles.productName}>{product.name}</Text>
                     <Text style={styles.productPrice}>{product.price}</Text>
-                    <TouchableOpacity style={styles.addButton}>
+                    <TouchableOpacity 
+                      style={styles.addButton}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        // Add to cart functionality
+                        console.log('Added to cart:', product.name);
+                      }}
+                    >
                         <Text style={styles.addButtonText}>+</Text>
                     </TouchableOpacity>
                   </View>
@@ -184,9 +258,60 @@ const ShopDetailScreen = ({ shop, onBack }) => {
             </ScrollView>
           </View>
 
+          {/* Shop Posts */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Shop Posts</Text>
+            {shopPosts.map((post) => (
+              <View key={post.id} style={styles.postCard}>
+                <View style={styles.postHeader}>
+                  <Text style={styles.postTimestamp}>{post.timestamp}</Text>
+                  {post.type === 'shop_offer' && (
+                    <View style={styles.offerBadge}>
+                      <Text style={styles.offerBadgeText}>Special Offer</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.postContent}>{post.content}</Text>
+                {post.image && (
+                  <View style={styles.postImageContainer}>
+                    <Text style={styles.postImage}>{post.image}</Text>
+                  </View>
+                )}
+                <View style={styles.postInteractions}>
+                  <TouchableOpacity 
+                    style={styles.interactionButton}
+                    onPress={() => handleLikePost(post.id)}
+                  >
+                    <Text>{likedPosts.has(post.id) ? '❤️' : '🤍'} {post.likes + (likedPosts.has(post.id) ? 1 : 0)}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.interactionButton}
+                    onPress={() => handleCommentPress(post.id)}
+                  >
+                    <Text>💬 {post.comments}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.interactionButton}
+                    onPress={() => handleSharePost(post)}
+                  >
+                    <Text>↗️ Share</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+
           {/* Customer Reviews */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Customer Reviews</Text>
+            <View style={styles.reviewsHeader}>
+              <Text style={styles.sectionTitle}>Customer Reviews</Text>
+              <TouchableOpacity 
+                style={styles.addReviewButton}
+                onPress={() => setReviewModalVisible(true)}
+              >
+                <Text style={styles.addReviewText}>Add Review</Text>
+              </TouchableOpacity>
+            </View>
             
             {reviews.map((review) => (
               <View key={review.id} style={styles.reviewCard}>
@@ -199,16 +324,27 @@ const ShopDetailScreen = ({ shop, onBack }) => {
               </View>
             ))}
             
-            <TouchableOpacity style={styles.viewAllButton}>
+            <TouchableOpacity 
+              style={styles.viewAllButton}
+              onPress={() => navigation.navigate('ShopReviews', { shopId: shop?.id })}
+            >
               <Text style={styles.viewAllText}>View All Reviews</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Review Modal */}
+          <ShopReviewModal
+            visible={isReviewModalVisible}
+            onClose={() => setReviewModalVisible(false)}
+            shop={shop}
+            onSubmit={handleReviewSubmit}
+          />
 
           {/* Similar Shops */}
           <View style={styles.similarShopsSection}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Similar Shops</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('SimilarShops', { shopId: shop?.id })}>
                 <Text style={styles.seeAllButton}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -217,15 +353,19 @@ const ShopDetailScreen = ({ shop, onBack }) => {
               showsHorizontalScrollIndicator={false}
               style={styles.shopsContainer}
             >
-              {similarShops.map((shop) => (
-                <TouchableOpacity key={shop.id} style={styles.shopCard}>
-                  <Image source={shop.image} style={styles.similarShopImage} />
+              {similarShops.map((similarShop) => (
+                <TouchableOpacity 
+                  key={similarShop.id} 
+                  style={styles.shopCard}
+                  onPress={() => navigation.navigate('ShopDetail', { shop: similarShop })}
+                >
+                  <Image source={similarShop.image} style={styles.similarShopImage} />
                   <View style={styles.similarShopInfo}>
-                    <Text style={styles.similarShopName}>{shop.name}</Text>
-                    <Text style={styles.similarShopDistance}>{shop.distance}</Text>
+                    <Text style={styles.similarShopName}>{similarShop.name}</Text>
+                    <Text style={styles.similarShopDistance}>{similarShop.distance}</Text>
                     <View style={styles.similarShopRating}>
-                      <Text style={styles.rating}>★ {shop.rating}</Text>
-                      <Text style={styles.reviews}>({shop.reviews})</Text>
+                      <Text style={styles.rating}>★ {similarShop.rating}</Text>
+                      <Text style={styles.reviews}>({similarShop.reviews})</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -241,32 +381,30 @@ const ShopDetailScreen = ({ shop, onBack }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#9C27B0',
+    backgroundColor: theme.colors.primary,
     paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
+    paddingBottom: theme.spacing.m,
+    paddingHorizontal: theme.spacing.l,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   backButton: {
-    padding: 8,
+    padding: theme.spacing.s,
   },
   backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '600',
+    color: theme.colors.text.inverse,
+    ...theme.typography.h2,
   },
   headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+    color: theme.colors.text.inverse,
+    ...theme.typography.h3,
   },
   headerRight: {
     flexDirection: 'row',
@@ -275,21 +413,21 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
+    borderRadius: theme.borderRadius.xl,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+    marginLeft: theme.spacing.s,
   },
   headerIcon: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
   },
   content: {
     flex: 1,
   },
   imageContainer: {
     height: 300,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.colors.surface,
   },
   shopImage: {
     width: '100%',
@@ -297,164 +435,169 @@ const styles = StyleSheet.create({
   },
   indicatorsContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: theme.spacing.l,
     width: '100%',
     alignItems: 'center',
   },
   shopInfo: {
-    padding: 20,
+    padding: theme.spacing.l,
   },
   shopName: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 12,
+    ...theme.typography.h2,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.m,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: theme.spacing.l,
   },
   rating: {
-    color: '#FFC107',
-    fontSize: 16,
-    marginRight: 8,
+    color: theme.colors.rating,
+    ...theme.typography.body1,
+    marginRight: theme.spacing.s,
   },
   reviews: {
-    fontSize: 14,
-    color: '#666666',
+    ...theme.typography.body2,
+    color: theme.colors.text.secondary,
   },
   locationContainer: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.l,
   },
   location: {
-    fontSize: 16,
-    color: '#333333',
-    marginBottom: 4,
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
   },
   distance: {
-    fontSize: 14,
-    color: '#666666',
+    ...theme.typography.body2,
+    color: theme.colors.text.secondary,
   },
   hoursContainer: {
-    marginBottom: 24,
-    padding: 16,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
+    marginBottom: theme.spacing.xl,
+    padding: theme.spacing.l,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.m,
   },
   hoursTitle: {
-    fontSize: 16,
+    ...theme.typography.body1,
     fontWeight: '600',
-    color: '#333333',
-    marginBottom: 8,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.s,
   },
   hours: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 4,
+    ...theme.typography.body2,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 16,
+    ...theme.typography.h3,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.l,
   },
   categoriesContainer: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.xl,
   },
   categoryButton: {
-    backgroundColor: '#F3E5F5',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 12,
+    backgroundColor: theme.colors.primary + '10',
+    paddingHorizontal: theme.spacing.l,
+    paddingVertical: theme.spacing.s,
+    borderRadius: theme.borderRadius.xl,
+    marginRight: theme.spacing.m,
   },
   categoryText: {
-    color: '#9C27B0',
-    fontSize: 14,
-    fontWeight: '500',
+    color: theme.colors.primary,
+    ...theme.typography.button,
   },
   featuredSection: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.xl,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: theme.spacing.l,
   },
   seeAllButton: {
-    color: '#9C27B0',
-    fontSize: 14,
+    color: theme.colors.primary,
+    ...theme.typography.button,
   },
   productsContainer: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.l,
   },
   productCard: {
     width: 160,
-    marginRight: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
+    marginRight: theme.spacing.l,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.m,
+    padding: theme.spacing.m,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.colors.border || '#e0e0e0',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   productImage: {
     width: '100%',
     height: 120,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: theme.borderRadius.s,
+    marginBottom: theme.spacing.m,
   },
+    backgroundColor: theme.colors.surface,
   productInfo: {
     alignItems: 'flex-start',
   },
   productName: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
+    ...theme.typography.body2,
+    marginBottom: theme.spacing.xs,
     textAlign: 'center',
   },
   productPrice: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#9C27B0',
+    ...theme.typography.body1,
+    color: theme.colors.primary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.s,
   },
   similarShopsSection: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.xl,
   },
   shopsContainer: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.l,
   },
   shopCard: {
     width: 200,
-    marginRight: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
+    marginRight: theme.spacing.l,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.m,
+    padding: theme.spacing.m,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.colors.border || '#e0e0e0',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   similarShopImage: {
     width: '100%',
     height: 120,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: theme.borderRadius.s,
+    marginBottom: theme.spacing.m,
   },
   similarShopInfo: {
     alignItems: 'flex-start',
   },
   similarShopName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333333',
-    marginBottom: 4,
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
   },
   similarShopDistance: {
-    fontSize: 12,
-    color: '#666666',
-    marginBottom: 4,
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs,
   },
   similarShopRating: {
     flexDirection: 'row',
@@ -462,10 +605,10 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingVertical: 12,
+    borderTopColor: theme.colors.border,
+    paddingVertical: theme.spacing.m,
   },
   navItem: {
     flex: 1,
@@ -474,16 +617,16 @@ const styles = StyleSheet.create({
   navIcon: {
     width: 20,
     height: 20,
-    marginBottom: 4,
-    tintColor: '#666666',
+    marginBottom: theme.spacing.xs,
+    tintColor: theme.colors.text.secondary,
   },
   navText: {
-    fontSize: 12,
-    color: '#666666',
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
   },
   addButton: {
-    backgroundColor: '#9C27B0',
-    borderRadius: 20,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.xl,
     width: 30,
     height: 30,
     alignItems: 'center',
@@ -491,51 +634,129 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: theme.colors.text.inverse,
+    ...theme.typography.h3,
   },
   reviewCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.m,
+    padding: theme.spacing.m,
+    marginBottom: theme.spacing.m,
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
   },
   reviewHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.s,
   },
   reviewName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 10,
+    ...theme.typography.body1,
+    marginRight: theme.spacing.m,
   },
   reviewRating: {
-    fontSize: 16,
-    color: '#FFD700',
-    marginRight: 10,
+    ...theme.typography.body1,
+    color: theme.colors.rating,
+    marginRight: theme.spacing.m,
   },
   reviewDate: {
-    fontSize: 14,
-    color: '#757575',
+    ...theme.typography.body2,
+    color: theme.colors.text.secondary,
   },
   reviewComment: {
-    fontSize: 14,
-    color: '#333333',
+    ...theme.typography.body2,
+    color: theme.colors.text.primary,
     lineHeight: 20,
   },
   viewAllButton: {
-    backgroundColor: '#F3E5F5',
-    borderRadius: 8,
-    paddingVertical: 10,
+    backgroundColor: theme.colors.primary + '10',
+    borderRadius: theme.borderRadius.s,
+    paddingVertical: theme.spacing.m,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: theme.spacing.m,
+  },
+  viewAllText: {
+    color: theme.colors.primary,
+    ...theme.typography.button,
+  },
+  sectionContainer: {
+    marginBottom: theme.spacing.xl,
+  },
+  postCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.m,
+    padding: theme.spacing.m,
+    marginBottom: theme.spacing.m,
+    borderWidth: 1,
+    borderColor: theme.colors.border || '#e0e0e0',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  postHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.m,
+  },
+  postTimestamp: {
+    ...theme.typography.caption,
+    color: theme.colors.text.secondary,
+  },
+  offerBadge: {
+    backgroundColor: theme.colors.secondary,
+    paddingHorizontal: theme.spacing.s,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.m,
+  },
+  offerBadgeText: {
+    color: theme.colors.text.inverse,
+    ...theme.typography.caption,
+    fontWeight: '600',
+  },
+  postContent: {
+    ...theme.typography.body2,
+    color: theme.colors.text.primary,
+    lineHeight: 20,
+    marginBottom: theme.spacing.m,
+  },
+  postImageContainer: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.m,
+  },
+  postImage: {
+    fontSize: 40,
+  },
+  postInteractions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingTop: theme.spacing.m,
+  },
+  interactionButton: {
+    padding: theme.spacing.xs,
+  },
+  reviewsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.l,
+  },
+  addReviewButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.s,
+    borderRadius: theme.borderRadius.s,
+  },
+  addReviewText: {
+    color: theme.colors.text.inverse,
+    ...theme.typography.button,
   },
 });
 

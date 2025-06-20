@@ -81,7 +81,7 @@ const createStyles = (theme, insets) => StyleSheet.create({
     borderTopColor: theme.colors.border,
     paddingTop: theme.spacing.s,
     paddingHorizontal: Math.max(insets.left, theme.spacing.xs),
-    paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 16),
+    paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 34 : 20),
     paddingRight: Math.max(insets.right, theme.spacing.xs),
     elevation: 8,
     shadowColor: theme.colors.shadow,
@@ -94,6 +94,8 @@ const createStyles = (theme, insets) => StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
+    // Ensure minimum height for proper touch targets
+    minHeight: Platform.OS === 'ios' ? 83 : 65,
   },
   navItem: {
     flex: 1,

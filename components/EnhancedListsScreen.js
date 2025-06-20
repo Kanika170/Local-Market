@@ -11,7 +11,7 @@ import {
   Alert,
   Share
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import { useShoppingList } from '../context/ShoppingListContext';
 import BottomNavigationBar from './BottomNavigationBar';
