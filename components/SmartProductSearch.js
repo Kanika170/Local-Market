@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
+import BottomNavigationBar from './BottomNavigationBar';
 
-const SmartProductSearch = ({ onBack }) => {
+const SmartProductSearch = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('wireless headphones');
   const [selectedFilters, setSelectedFilters] = useState({
     price: ['Under $200'],
@@ -267,27 +268,7 @@ const SmartProductSearch = ({ onBack }) => {
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={onBack}>
-          <Text style={styles.navIcon}>🏠</Text>
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={[styles.navIcon, styles.activeNavIcon]}>🔍</Text>
-          <Text style={[styles.navText, styles.activeNavText]}>Search</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>📋</Text>
-          <Text style={styles.navText}>Lists</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>👤</Text>
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNavigationBar navigation={navigation} activeTab="Search" />
     </View>
   );
 };

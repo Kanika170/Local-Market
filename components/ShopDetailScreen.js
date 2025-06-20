@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import PageIndicators from './PageIndicators';
+import BottomNavigationBar from './BottomNavigationBar';
+
 
 const ShopDetailScreen = ({ shop, onBack }) => {
   const navigation = useNavigation();
@@ -234,27 +236,7 @@ const ShopDetailScreen = ({ shop, onBack }) => {
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Image 
-            source={require('../assets/6389f902-d158-468d-8f00-45bbb02103b2.png')} 
-            style={styles.navIcon} 
-          />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>🔍</Text>
-          <Text style={styles.navText}>Search</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>📋</Text>
-          <Text style={styles.navText}>Lists</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>👤</Text>
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNavigationBar navigation={navigation} activeTab="Home" />
     </View>
   );
 };
