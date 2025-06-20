@@ -531,6 +531,7 @@ const createStyles = (theme) => StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.m,
     padding: theme.spacing.m,
+    padding: theme.spacing.m,
     borderWidth: 1,
     borderColor: theme.colors.border || '#e0e0e0',
     elevation: 2,
