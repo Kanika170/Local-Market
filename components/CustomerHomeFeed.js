@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Platform, Dimensions } from 'react-native';
+import { View, StyleSheet, Animated, Platform, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import BottomNavigationBar from './BottomNavigationBar';
@@ -17,6 +18,11 @@ import ShopDetailScreen from './ShopDetailScreen';
 import { generateFeedData, nearbyEvents, popularProducts } from '../data/feedData';
 
 const CustomerHomeFeed = () => {
+  const {
+    handleScroll,
+    scrollEventThrottle,
+    bottomBarTranslateY
+  } = useScrollAnimation();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedShop, setSelectedShop] = useState(null);
   const [dimensions, setDimensions] = useState(Dimensions.get('window'));
@@ -101,10 +107,12 @@ const CustomerHomeFeed = () => {
             <View style={styles.container}>
               <LocationHeader navigation={navigation} />
 
-              <ScrollView 
+              <Animated.ScrollView 
                 style={styles.content} 
                 contentContainerStyle={styles.contentContainer}
                 showsVerticalScrollIndicator={false}
+                onScroll={handleScroll}
+                scrollEventThrottle={scrollEventThrottle}
               >
                 <FeedSection 
                   feedData={feedData}
@@ -121,9 +129,13 @@ const CustomerHomeFeed = () => {
                   products={popularProducts}
                   onProductPress={handleProductPress}
                 />
-              </ScrollView>
+              </Animated.ScrollView>
 
-              <BottomNavigationBar navigation={navigation} activeTab="Home" />
+              <BottomNavigationBar 
+                navigation={navigation} 
+                activeTab="Home"
+                translateY={bottomBarTranslateY}
+              />
             </View>
           </SafeAreaWrapper>
         </FeedInteractionProvider>

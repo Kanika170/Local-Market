@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { useLocation } from '../../context/LocationContext';
 import LocationSelector from './LocationSelector';
@@ -79,20 +79,21 @@ const LocationHeader = ({ navigation }) => {
 const createStyles = (theme) => StyleSheet.create({
   header: {
     backgroundColor: theme.colors.primary,
-    paddingTop: theme.spacing.m,
-    paddingBottom: theme.spacing.m,
-    paddingHorizontal: theme.spacing.l,
+    paddingTop: Platform.OS === 'ios' ? theme.spacing.s : theme.spacing.xs,
+    paddingBottom: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.m,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
   },
   headerLeft: {
     flex: 1,
+    marginRight: theme.spacing.s,
   },
   locationSection: {
     flexDirection: 'row',
@@ -101,15 +102,18 @@ const createStyles = (theme) => StyleSheet.create({
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: theme.spacing.m,
-    paddingVertical: theme.spacing.s,
-    borderRadius: theme.borderRadius.m,
-    maxWidth: '85%',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: theme.spacing.s,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.l,
+    maxWidth: '90%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   locationIcon: {
-    fontSize: 18,
-    marginRight: theme.spacing.s,
+    fontSize: 16,
+    marginRight: theme.spacing.xs,
+    opacity: 0.9,
   },
   locationText: {
     flex: 1,
@@ -117,7 +121,9 @@ const createStyles = (theme) => StyleSheet.create({
   greeting: {
     color: theme.colors.text.inverse,
     ...theme.typography.caption,
-    opacity: 0.9,
+    opacity: 0.85,
+    fontSize: 11,
+    marginBottom: 1,
   },
   locationRow: {
     flexDirection: 'row',
@@ -125,31 +131,35 @@ const createStyles = (theme) => StyleSheet.create({
   },
   locationName: {
     color: theme.colors.text.inverse,
-    ...theme.typography.body1,
+    fontSize: 15,
     fontWeight: '600',
     flex: 1,
   },
   dropdownIcon: {
     color: theme.colors.text.inverse,
-    fontSize: 10,
+    fontSize: 9,
     marginLeft: theme.spacing.xs,
     opacity: 0.7,
   },
   headerRight: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   headerButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: theme.borderRadius.xl,
+    width: 34,
+    height: 34,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: theme.borderRadius.round,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: theme.spacing.s,
+    marginLeft: theme.spacing.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   headerIcon: {
-    fontSize: 18,
+    fontSize: 16,
     color: theme.colors.text.inverse,
+    opacity: 0.9,
   },
 });
 

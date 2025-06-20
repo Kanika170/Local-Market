@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import HomeIcon from './icons/HomeIcon';
@@ -7,13 +7,21 @@ import SearchIcon from './icons/SearchIcon';
 import ShoppingBagIcon from './icons/ShoppingBagIcon';
 import ProfileIcon from './icons/ProfileIcon';
 
-const BottomNavigationBar = ({ navigation, activeTab }) => {
+const BottomNavigationBar = ({ navigation, activeTab, translateY = new Animated.Value(1) }) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets);
 
+  // Calculate the transform value based on translateY
+  const transform = [{
+    translateY: translateY.interpolate({
+      inputRange: [0, 1],
+      outputRange: [100, 0], // Move down by container height when hidden
+    }),
+  }];
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { transform }]}>
       <TouchableOpacity 
         style={styles.navItem}
         onPress={() => navigation.navigate('CustomerHomeFeed')}
@@ -69,7 +77,7 @@ const BottomNavigationBar = ({ navigation, activeTab }) => {
           activeTab === 'Profile' && styles.activeText
         ]}>Profile</Text>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -88,14 +96,16 @@ const createStyles = (theme, insets) => StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    // Ensure the navigation bar is always above other content
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     zIndex: 1000,
-    // Ensure minimum height for proper touch targets
     minHeight: Platform.OS === 'ios' ? 83 : 65,
+    // Add backdrop blur effect
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(255,255,255,0.95)' : theme.colors.background,
   },
   navItem: {
     flex: 1,
