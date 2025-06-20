@@ -125,11 +125,16 @@ const FeedSection = ({ feedData, onProductPress, onShopPress }) => {
   return (
     <View style={styles.container}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Feed</Text>
         {selectedLocation && (
-          <Text style={styles.locationInfo}>
-            📍 Showing content near {selectedLocation.name || 'your location'}
-          </Text>
+          <View style={styles.locationInfoContainer}>
+            <Text
+              style={styles.locationInfo}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              📍 Showing content near {selectedLocation.name || "Ihita Residency flat no. 401 new vishal pg's and group's jaya ram nagar, 140/2/2, Phase 1, Hinjawadi Rajiv Gandhi Infotech Park, Hinjawadi, Pune, Pimpri-Chinchwad, Pune, Maharashtra, 411057"}
+            </Text>
+          </View>
         )}
       </View>
       
@@ -158,12 +163,32 @@ const createStyles = (theme) => {
   },
   sectionHeader: {
     marginBottom: theme.spacing.m,
+
+
+
+    paddingTop: theme.spacing.s,
+    backgroundColor: theme.colors.background,
+    zIndex: 2,
   },
   sectionTitle: {
     ...theme.typography.h3,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.xs,
   },
+  locationInfoContainer: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      marginTop: 4,
+      marginBottom: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.06,
+      shadowRadius: 2,
+      elevation: 1,
+      maxWidth: '100%',
+    },
   locationInfo: {
     ...theme.typography.caption,
     color: theme.colors.text.secondary,
