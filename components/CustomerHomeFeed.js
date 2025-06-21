@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Animated, Platform, Dimensions } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, StyleSheet, Animated, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -96,8 +96,40 @@ const CustomerHomeFeed = () => {
     );
   }
 
-  // Generate dynamic feed data
-  const feedData = generateFeedData();
+  const [feedData, setFeedData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const initializeFeed = async () => {
+      setIsLoading(true);
+      const data = generateFeedData();
+      setFeedData(data);
+      setIsLoading(false);
+    };
+    
+    initializeFeed();
+  }, []);
+
+  // Memoize sections to prevent unnecessary re-renders
+  const renderSections = useMemo(() => (
+    <>
+      <FeedSection 
+        feedData={feedData}
+        onProductPress={handleProductPress}
+        onShopPress={handleShopPress}
+      />
+
+      <EventsSection 
+        events={nearbyEvents}
+        onEventPress={handleProductPress}
+      />
+
+      <ProductsSection 
+        products={popularProducts}
+        onProductPress={handleProductPress}
+      />
+    </>
+  ), [feedData, handleProductPress, handleShopPress]);
 
   return (
     <LocationProvider>
@@ -114,21 +146,11 @@ const CustomerHomeFeed = () => {
                 onScroll={handleScroll}
                 scrollEventThrottle={scrollEventThrottle}
               >
-                <FeedSection 
-                  feedData={feedData}
-                  onProductPress={handleProductPress}
-                  onShopPress={handleShopPress}
-                />
-
-                <EventsSection 
-                  events={nearbyEvents}
-                  onEventPress={handleProductPress}
-                />
-
-                <ProductsSection 
-                  products={popularProducts}
-                  onProductPress={handleProductPress}
-                />
+                {isLoading ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                  </View>
+                ) : renderSections}
               </Animated.ScrollView>
 
               <BottomNavigationBar 
@@ -153,6 +175,12 @@ const createStyles = (theme, insets) => {
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 200,
   },
   content: {
     flex: 1,

@@ -14,6 +14,7 @@ import SimilarShopsTab from './shop-detail/tabs/SimilarShopsTab';
 import ShopReviewModal from './common/ShopReviewModal';
 import BottomNavigationBar from './BottomNavigationBar';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
+import { mockReviews } from '../data/mockReviewData';
 
 const ShopDetailScreen = () => {
   const {
@@ -96,22 +97,8 @@ const ShopDetailScreen = () => {
     }
   ];
 
-  const reviews = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      rating: '★★★★☆',
-      date: '2 days ago',
-      comment: 'Always fresh produce and excellent customer service. Highly recommend!'
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      rating: '★★★★★',
-      date: '1 week ago',
-      comment: 'Great selection of international foods and friendly staff.'
-    }
-  ];
+  // Use the mock reviews data
+  const reviews = mockReviews;
 
   const similarShops = [
     {

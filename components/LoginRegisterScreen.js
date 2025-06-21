@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ShoppingBagIcon from './ShoppingBagIcon';
 
@@ -7,6 +7,15 @@ const LoginRegisterScreen = ({ onSendOTP }) => {
   const navigation = useNavigation();
   const [mobileNumber, setMobileNumber] = useState('');
   const [selectedUserType, setSelectedUserType] = useState('customer');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleSendOTP = (mobileNumber, userType) => {
     // Default OTP handling if onSendOTP is not provided
@@ -19,9 +28,13 @@ const LoginRegisterScreen = ({ onSendOTP }) => {
     }
   };
 
-  const handleLoginRegister = (mobileNumber, userType) => {
+  const handleLoginRegister = async (mobileNumber, userType) => {
     // Simulate login/registration logic here (e.g., API call)
     console.log('Login/Register pressed', mobileNumber, userType);
+    setLoading(true);
+    
+    // Add a small delay to simulate API call and show loader
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     if (userType === 'shopowner') {
       // Navigate to SellerApp and then to SellerTabs to show the dashboard
@@ -32,6 +45,8 @@ const LoginRegisterScreen = ({ onSendOTP }) => {
     } else {
       navigation.navigate('MainApp');
     }
+    
+    // Loading will be reset when screen comes back into focus
   };
 
   return (
@@ -114,6 +129,7 @@ const LoginRegisterScreen = ({ onSendOTP }) => {
         <TouchableOpacity
           style={styles.sendOTPButton}
           onPress={() => handleSendOTP(mobileNumber, selectedUserType)}
+          disabled={loading}
         >
           <Text style={styles.sendOTPText}>Send OTP</Text>
         </TouchableOpacity>
@@ -121,8 +137,13 @@ const LoginRegisterScreen = ({ onSendOTP }) => {
         <TouchableOpacity
           style={styles.loginRegisterButton}
           onPress={() => handleLoginRegister(mobileNumber, selectedUserType)} // Call handleLoginRegister
+          disabled={loading}
         >
-          <Text style={styles.loginRegisterText}>Login/Register</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.loginRegisterText}>Login/Register</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -266,6 +287,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#9C27B0',
     paddingVertical: 16,
     borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loginRegisterText: {
     color: '#FFFFFF',

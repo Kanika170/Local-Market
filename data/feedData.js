@@ -41,8 +41,8 @@ export const generateFeedData = () => {
   const postTypes = ['user_post', 'shop_offer', 'product_showcase', 'shop_update'];
   const feedData = [];
 
-  // Generate 120 feed items
-  for (let i = 1; i <= 120; i++) {
+  // Generate initial 20 feed items for faster loading
+  for (let i = 1; i <= 20; i++) {
     const type = postTypes[Math.floor(Math.random() * postTypes.length)];
     const isShopPost = type !== 'user_post';
     const author = isShopPost ? shops[Math.floor(Math.random() * shops.length)] : users[Math.floor(Math.random() * users.length)];
