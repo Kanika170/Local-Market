@@ -61,7 +61,7 @@ const SmartProductSearch = ({ navigation }) => {
   };
 
   const handleProductPress = (product) => {
-    navigation.navigate('ProductDetail', { product });
+    navigation.navigate('ProductDetailScreen', { product });
   };
 
   const handleShopPress = (shop) => {
@@ -210,108 +210,103 @@ const SmartProductSearch = ({ navigation }) => {
       bottomNavProps={{
         navigation,
         activeTab: 'Search',
-        animatedStyle: {
-          transform: [{
-            translateY: bottomBarTranslateY.interpolate({
-              inputRange: [0, 1],
-              outputRange: [100, 0],
-            })
-          }]
-        }
+        translateY: bottomBarTranslateY
       }}
     >
-      <ScrollView 
-        style={styles.container}
-        onScroll={handleScroll}
-        scrollEventThrottle={scrollEventThrottle}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search for products, shops, or posts..."
-            placeholderTextColor={theme.colors.text.tertiary}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
-          />
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.searchButtonText}>🔍</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Filters Section */}
-        <View style={styles.filtersSection}>
-          <View style={styles.filtersHeader}>
-            <Text style={styles.filtersTitle}>
-              Filters {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
-            </Text>
-            <View style={styles.filterActions}>
-              <TouchableOpacity onPress={openSortModal} style={styles.sortButton}>
-                <Text style={styles.sortButtonText}>Sort: {sortBy}</Text>
-                <Text style={styles.dropdownArrow}>▼</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={clearAllFilters}>
-                <Text style={styles.clearAllText}>Clear All</Text>
-              </TouchableOpacity>
-            </View>
+      <View style={styles.container}>
+        {/* Sticky Header Section */}
+        <View style={styles.stickyHeader}>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search for products, shops, or posts..."
+              placeholderTextColor={theme.colors.text.tertiary}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
+            />
+            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+              <Text style={styles.searchButtonText}>🔍</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Filter Categories */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterCategoriesContainer}>
-            {filterCategories.map((category) => (
-              <TouchableOpacity 
-                key={category.key} 
-                style={[
-                  styles.filterCategory,
-                  selectedFilters[category.key].length > 0 && styles.activeFilterCategory
-                ]}
-                onPress={() => openFilterModal(category.key)}
-              >
-                <Text style={[
-                  styles.filterCategoryText,
-                  selectedFilters[category.key].length > 0 && styles.activeFilterCategoryText
-                ]}>
-                  {category.label}
-                  {selectedFilters[category.key].length > 0 && ` (${selectedFilters[category.key].length})`}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {/* Active Filters */}
-          {getActiveFiltersCount() > 0 && (
-            <View style={styles.activeFiltersContainer}>
-              {Object.entries(selectedFilters).map(([category, filters]) =>
-                filters.map((filter) => (
-                  <TouchableOpacity 
-                    key={`${category}-${filter}`} 
-                    style={styles.activeFilter}
-                    onPress={() => toggleFilter(category, filter)}
-                  >
-                    <Text style={styles.activeFilterText}>{filter}</Text>
-                    <Text style={styles.removeFilterText}> ✕</Text>
-                  </TouchableOpacity>
-                ))
-              )}
+          {/* Filters Section */}
+          <View style={styles.filtersSection}>
+            <View style={styles.filtersHeader}>
+              <Text style={styles.filtersTitle}>
+                Filters {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
+              </Text>
+              <View style={styles.filterActions}>
+                <TouchableOpacity onPress={openSortModal} style={styles.sortButton}>
+                  <Text style={styles.sortButtonText}>Sort: {sortBy}</Text>
+                  <Text style={styles.dropdownArrow}>▼</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={clearAllFilters}>
+                  <Text style={styles.clearAllText}>Clear All</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          )}
+
+            {/* Filter Categories */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterCategoriesContainer}>
+              {filterCategories.map((category) => (
+                <TouchableOpacity 
+                  key={category.key} 
+                  style={[
+                    styles.filterCategory,
+                    selectedFilters[category.key].length > 0 && styles.activeFilterCategory
+                  ]}
+                  onPress={() => openFilterModal(category.key)}
+                >
+                  <Text style={[
+                    styles.filterCategoryText,
+                    selectedFilters[category.key].length > 0 && styles.activeFilterCategoryText
+                  ]}>
+                    {category.label}
+                    {selectedFilters[category.key].length > 0 && ` (${selectedFilters[category.key].length})`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Active Filters */}
+            {getActiveFiltersCount() > 0 && (
+              <View style={styles.activeFiltersContainer}>
+                {Object.entries(selectedFilters).map(([category, filters]) =>
+                  filters.map((filter) => (
+                    <TouchableOpacity 
+                      key={`${category}-${filter}`} 
+                      style={styles.activeFilter}
+                      onPress={() => toggleFilter(category, filter)}
+                    >
+                      <Text style={styles.activeFilterText}>{filter}</Text>
+                      <Text style={styles.removeFilterText}> ✕</Text>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+            )}
+          </View>
         </View>
 
-        {/* Search Results with Tabs */}
+        {/* Scrollable Search Results */}
         {showResults && (
-          <SearchResults
-            searchQuery={searchQuery}
-            selectedFilters={selectedFilters}
-            sortBy={sortBy}
-            onProductPress={handleProductPress}
-            onShopPress={handleShopPress}
-            onPostInteraction={handlePostInteraction}
-          />
+          <View style={styles.resultsContainer}>
+            <SearchResults
+              searchQuery={searchQuery}
+              selectedFilters={selectedFilters}
+              sortBy={sortBy}
+              onProductPress={handleProductPress}
+              onShopPress={handleShopPress}
+              onPostInteraction={handlePostInteraction}
+              onScroll={handleScroll}
+              scrollEventThrottle={scrollEventThrottle}
+            />
+          </View>
         )}
-      </ScrollView>
+      </View>
 
       {/* Filter Modal */}
       {renderFilterModal()}
@@ -325,7 +320,27 @@ const SmartProductSearch = ({ navigation }) => {
 const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
+  },
+  stickyHeader: {
+    backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.m,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  resultsContainer: {
+    flex: 1,
+    zIndex: 0,
+    paddingTop: theme.spacing.s,
+    backgroundColor: theme.colors.background,
   },
   headerIcon: {
     fontSize: 20,

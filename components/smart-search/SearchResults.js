@@ -13,7 +13,9 @@ const SearchResults = ({
   sortBy,
   onProductPress,
   onShopPress,
-  onPostInteraction
+  onPostInteraction,
+  onScroll,
+  scrollEventThrottle
 }) => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -37,6 +39,8 @@ const SearchResults = ({
             onProductPress={onProductPress}
             onShopPress={onShopPress}
             onPostInteraction={onPostInteraction}
+            onScroll={onScroll}
+            scrollEventThrottle={scrollEventThrottle}
           />
         );
       case 'products':
@@ -46,6 +50,8 @@ const SearchResults = ({
             selectedFilters={selectedFilters}
             sortBy={sortBy}
             onProductPress={onProductPress}
+            onScroll={onScroll}
+            scrollEventThrottle={scrollEventThrottle}
           />
         );
       case 'posts':
@@ -54,6 +60,8 @@ const SearchResults = ({
             searchQuery={searchQuery}
             sortBy={sortBy}
             onPostInteraction={onPostInteraction}
+            onScroll={onScroll}
+            scrollEventThrottle={scrollEventThrottle}
           />
         );
       case 'shops':
@@ -62,6 +70,8 @@ const SearchResults = ({
             searchQuery={searchQuery}
             sortBy={sortBy}
             onShopPress={onShopPress}
+            onScroll={onScroll}
+            scrollEventThrottle={scrollEventThrottle}
           />
         );
       default:
@@ -90,6 +100,7 @@ const createStyles = (theme) => StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: theme.spacing.m,
+    paddingTop: theme.spacing.m,
   }
 });
 
