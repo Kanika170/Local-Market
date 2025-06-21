@@ -65,7 +65,7 @@ const SmartProductSearch = ({ navigation }) => {
   };
 
   const handleShopPress = (shop) => {
-    navigation.navigate('ShopDetail', { shop });
+    navigation.navigate('ShopDetailScreen', { shop });
   };
 
   const handlePostInteraction = (type, data) => {
