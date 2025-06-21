@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { sellerTheme } from '../../../theme/sellerTheme';
+import { useTheme } from '../../../theme/useTheme';
 import { createSellerStyles } from '../../../styles/sellerStyles';
 
 const StatsCard = ({
@@ -14,18 +14,23 @@ const StatsCard = ({
   onPress,
   style,
 }) => {
-  const styles = createSellerStyles(sellerTheme);
+  const { theme } = useTheme();
+  const styles = createSellerStyles(theme);
   
   const getGradientColors = () => {
+    if (!theme.colors.gradients) {
+      return [theme.colors.primary, theme.colors.primary];
+    }
+    
     switch (type) {
       case 'revenue':
-        return sellerTheme.colors.gradients.revenue;
+        return theme.colors.gradients.revenue || theme.colors.gradients.primary || [theme.colors.primary, theme.colors.primary];
       case 'orders':
-        return sellerTheme.colors.gradients.orders;
+        return theme.colors.gradients.orders || theme.colors.gradients.primary || [theme.colors.primary, theme.colors.primary];
       case 'success':
-        return sellerTheme.colors.gradients.success;
+        return theme.colors.gradients.success || theme.colors.gradients.primary || [theme.colors.primary, theme.colors.primary];
       default:
-        return sellerTheme.colors.gradients.primary;
+        return theme.colors.gradients.primary || [theme.colors.primary, theme.colors.primary];
     }
   };
 
@@ -34,7 +39,7 @@ const StatsCard = ({
     const isPositive = change > 0;
     return {
       ...styles.statsChange,
-      color: isPositive ? sellerTheme.colors.success : sellerTheme.colors.error,
+      color: isPositive ? theme.colors.success : theme.colors.error,
     };
   };
 
@@ -50,16 +55,16 @@ const StatsCard = ({
           <Icon
             name={icon}
             size={24}
-            color={sellerTheme.colors.text.inverse}
+            color={theme.colors.text.inverse}
             style={{ marginRight: 8 }}
           />
         )}
-        <Text style={[styles.statsLabel, { color: sellerTheme.colors.text.inverse }]}>
+        <Text style={[styles.statsLabel, { color: theme.colors.text.inverse }]}>
           {title}
         </Text>
       </View>
       
-      <Text style={[styles.statsValue, { color: sellerTheme.colors.text.inverse }]}>
+      <Text style={[styles.statsValue, { color: theme.colors.text.inverse }]}>
         {value}
       </Text>
       
@@ -68,7 +73,7 @@ const StatsCard = ({
           <Icon
             name={change > 0 ? 'arrow-up' : 'arrow-down'}
             size={16}
-            color={change > 0 ? sellerTheme.colors.success : sellerTheme.colors.error}
+            color={change > 0 ? theme.colors.success : theme.colors.error}
             style={{ marginRight: 4 }}
           />
           <Text style={getChangeStyle()}>

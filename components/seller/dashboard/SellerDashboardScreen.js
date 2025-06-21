@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSeller } from '../../../context/SellerContext';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { sellerTheme } from '../../../theme/sellerTheme';
+import { useTheme } from '../../../theme/useTheme';
 import { createSellerStyles } from '../../../styles/sellerStyles';
 import SellerCard from '../common/SellerCard';
 import StatsCard from '../common/StatsCard';
@@ -20,7 +20,8 @@ const SellerDashboardScreen = () => {
   const navigation = useNavigation();
   const { shopData, analytics, notifications, refreshAnalytics } = useSeller();
   const [refreshing, setRefreshing] = React.useState(false);
-  const styles = createSellerStyles(sellerTheme);
+  const { theme } = useTheme();
+  const styles = createSellerStyles(theme);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -32,37 +33,37 @@ const SellerDashboardScreen = () => {
     { 
       title: 'Add Product', 
       icon: 'plus-circle', 
-      color: sellerTheme.colors.primary,
+      color: theme.colors.primary,
       action: () => navigation.navigate('AddProduct') 
     },
     { 
       title: 'View Orders', 
       icon: 'clipboard-list', 
-      color: sellerTheme.colors.secondary,
+      color: theme.colors.secondary,
       action: () => navigation.navigate('Orders') 
     },
     { 
       title: 'Create Post', 
       icon: 'post', 
-      color: sellerTheme.colors.accent,
+      color: theme.colors.accent || theme.colors.info,
       action: () => navigation.navigate('Posts') 
     },
     { 
       title: 'Messages', 
       icon: 'message-text', 
-      color: sellerTheme.colors.warning,
+      color: theme.colors.warning,
       action: () => navigation.navigate('Chat') 
     },
     { 
       title: 'Analytics', 
       icon: 'chart-line', 
-      color: sellerTheme.colors.info,
+      color: theme.colors.info,
       action: () => navigation.navigate('Analytics') 
     },
     { 
       title: 'Settings', 
       icon: 'cog', 
-      color: sellerTheme.colors.text.secondary,
+      color: theme.colors.text.secondary,
       action: () => navigation.navigate('Settings') 
     },
   ];
@@ -74,17 +75,25 @@ const SellerDashboardScreen = () => {
     return 'Good Evening';
   };
 
+  // Fallback for gradients if not available in theme
+  const getGradientColors = () => {
+    if (theme.colors.gradients && theme.colors.gradients.primary) {
+      return theme.colors.gradients.primary;
+    }
+    return [theme.colors.primary, theme.colors.primary];
+  };
+
   return (
     <View style={styles.container}>
       {/* Header with Gradient */}
       <LinearGradient
-        colors={sellerTheme.colors.gradients.primary}
+        colors={getGradientColors()}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{
           paddingTop: 50,
           paddingBottom: 20,
-          paddingHorizontal: sellerTheme.spacing.m,
+          paddingHorizontal: theme.spacing.m,
         }}
       >
         <View style={{
@@ -94,23 +103,23 @@ const SellerDashboardScreen = () => {
         }}>
           <View style={{ flex: 1 }}>
             <Text style={{
-              ...sellerTheme.typography.body1,
-              color: sellerTheme.colors.text.inverse,
+              ...theme.typography.body1,
+              color: theme.colors.text.inverse,
               opacity: 0.9,
             }}>
               {getGreeting()}!
             </Text>
             <Text style={{
-              ...sellerTheme.typography.h3,
-              color: sellerTheme.colors.text.inverse,
+              ...theme.typography.h3,
+              color: theme.colors.text.inverse,
               fontWeight: '700',
               marginTop: 4,
             }}>
               {shopData?.shopName || 'Your Shop'}
             </Text>
             <Text style={{
-              ...sellerTheme.typography.body2,
-              color: sellerTheme.colors.text.inverse,
+              ...theme.typography.body2,
+              color: theme.colors.text.inverse,
               opacity: 0.8,
               marginTop: 2,
             }}>
@@ -125,9 +134,9 @@ const SellerDashboardScreen = () => {
               padding: 12,
               position: 'relative',
             }}
-            onPress={() => navigation.navigate('Notifications')}
+            onPress={() => navigation.navigate('ShopNotificationScreen')}
           >
-            <Icon name="bell" size={24} color={sellerTheme.colors.text.inverse} />
+            <Icon name="bell" size={24} color={theme.colors.text.inverse} />
             {notifications.filter(n => !n.isRead).length > 0 && (
               <View style={{
                 position: 'absolute',
@@ -136,7 +145,7 @@ const SellerDashboardScreen = () => {
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: sellerTheme.colors.error,
+                backgroundColor: theme.colors.error,
               }} />
             )}
           </TouchableOpacity>
@@ -153,9 +162,9 @@ const SellerDashboardScreen = () => {
         {/* Stats Cards */}
         <View style={{
           flexDirection: 'row',
-          paddingHorizontal: sellerTheme.spacing.m,
-          paddingTop: sellerTheme.spacing.m,
-          gap: sellerTheme.spacing.s,
+          paddingHorizontal: theme.spacing.m,
+          paddingTop: theme.spacing.m,
+          gap: theme.spacing.s,
         }}>
           <View style={{ flex: 1 }}>
             <StatsCard
@@ -179,8 +188,8 @@ const SellerDashboardScreen = () => {
 
         <View style={{
           flexDirection: 'row',
-          paddingHorizontal: sellerTheme.spacing.m,
-          gap: sellerTheme.spacing.s,
+          paddingHorizontal: theme.spacing.m,
+          gap: theme.spacing.s,
         }}>
           <View style={{ flex: 1 }}>
             <StatsCard
@@ -203,15 +212,15 @@ const SellerDashboardScreen = () => {
         </View>
 
         {/* Quick Actions */}
-        <View style={{ paddingHorizontal: sellerTheme.spacing.m, marginTop: sellerTheme.spacing.m }}>
+        <View style={{ paddingHorizontal: theme.spacing.m, marginTop: theme.spacing.m }}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={{
             flexDirection: 'row',
             flexWrap: 'wrap',
-            marginHorizontal: -sellerTheme.spacing.xs,
+            marginHorizontal: -theme.spacing.xs,
           }}>
             {quickActions.map((action, index) => (
-              <View key={index} style={{ width: '33.33%', marginBottom: sellerTheme.spacing.s }}>
+              <View key={index} style={{ width: '33.33%', marginBottom: theme.spacing.s }}>
                 <QuickAction
                   title={action.title}
                   icon={action.icon}
@@ -224,59 +233,59 @@ const SellerDashboardScreen = () => {
         </View>
 
         {/* Monthly Overview */}
-        <View style={{ paddingHorizontal: sellerTheme.spacing.m }}>
+        <View style={{ paddingHorizontal: theme.spacing.m }}>
           <SellerCard
             title="Monthly Overview"
             subtitle="Your business performance this month"
             icon="chart-box"
-            iconColor={sellerTheme.colors.accent}
+            iconColor={theme.colors.accent || theme.colors.info}
           >
             <View style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              marginTop: sellerTheme.spacing.s,
+              marginTop: theme.spacing.s,
             }}>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{
-                  ...sellerTheme.typography.h4,
-                  color: sellerTheme.colors.primary,
+                  ...theme.typography.h4,
+                  color: theme.colors.primary,
                   fontWeight: '700',
                 }}>
                   ₹{analytics.thisMonth?.sales?.toLocaleString() || 0}
                 </Text>
                 <Text style={{
-                  ...sellerTheme.typography.caption,
-                  color: sellerTheme.colors.text.secondary,
+                  ...theme.typography.caption,
+                  color: theme.colors.text.secondary,
                 }}>
                   Total Sales
                 </Text>
               </View>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{
-                  ...sellerTheme.typography.h4,
-                  color: sellerTheme.colors.secondary,
+                  ...theme.typography.h4,
+                  color: theme.colors.secondary,
                   fontWeight: '700',
                 }}>
                   {analytics.thisMonth?.orders || 0}
                 </Text>
                 <Text style={{
-                  ...sellerTheme.typography.caption,
-                  color: sellerTheme.colors.text.secondary,
+                  ...theme.typography.caption,
+                  color: theme.colors.text.secondary,
                 }}>
                   Total Orders
                 </Text>
               </View>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{
-                  ...sellerTheme.typography.h4,
-                  color: sellerTheme.colors.success,
+                  ...theme.typography.h4,
+                  color: theme.colors.success,
                   fontWeight: '700',
                 }}>
                   +{analytics.thisMonth?.growth || 0}%
                 </Text>
                 <Text style={{
-                  ...sellerTheme.typography.caption,
-                  color: sellerTheme.colors.text.secondary,
+                  ...theme.typography.caption,
+                  color: theme.colors.text.secondary,
                 }}>
                   Growth
                 </Text>
@@ -286,12 +295,12 @@ const SellerDashboardScreen = () => {
         </View>
 
         {/* Top Products */}
-        <View style={{ paddingHorizontal: sellerTheme.spacing.m }}>
+        <View style={{ paddingHorizontal: theme.spacing.m }}>
           <SellerCard
             title="Top Performing Products"
             subtitle="Your best sellers this month"
             icon="star"
-            iconColor={sellerTheme.colors.warning}
+            iconColor={theme.colors.warning}
           >
             {analytics.topProducts?.map((product, index) => (
               <View
@@ -299,23 +308,23 @@ const SellerDashboardScreen = () => {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  paddingVertical: sellerTheme.spacing.s,
+                  paddingVertical: theme.spacing.s,
                   borderBottomWidth: index < analytics.topProducts.length - 1 ? 1 : 0,
-                  borderBottomColor: sellerTheme.colors.divider,
+                  borderBottomColor: theme.colors.divider || theme.colors.border,
                 }}
               >
                 <View style={{
                   width: 24,
                   height: 24,
                   borderRadius: 12,
-                  backgroundColor: sellerTheme.colors.primary,
+                  backgroundColor: theme.colors.primary,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginRight: sellerTheme.spacing.m,
+                  marginRight: theme.spacing.m,
                 }}>
                   <Text style={{
-                    ...sellerTheme.typography.caption,
-                    color: sellerTheme.colors.text.inverse,
+                    ...theme.typography.caption,
+                    color: theme.colors.text.inverse,
                     fontWeight: '600',
                   }}>
                     {index + 1}
@@ -323,16 +332,16 @@ const SellerDashboardScreen = () => {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{
-                    ...sellerTheme.typography.body1,
-                    color: sellerTheme.colors.text.primary,
+                    ...theme.typography.body1,
+                    color: theme.colors.text.primary,
                     fontWeight: '500',
                   }}>
                     {product.name}
                   </Text>
                 </View>
                 <Text style={{
-                  ...sellerTheme.typography.body2,
-                  color: sellerTheme.colors.primary,
+                  ...theme.typography.body2,
+                  color: theme.colors.primary,
                   fontWeight: '600',
                 }}>
                   {product.sales} sold
@@ -345,7 +354,5 @@ const SellerDashboardScreen = () => {
     </View>
   );
 };
-
-const styles = createSellerStyles(sellerTheme);
 
 export default SellerDashboardScreen;

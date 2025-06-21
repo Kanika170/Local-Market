@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { sellerTheme } from '../../../theme/sellerTheme';
+import { useTheme } from '../../../theme/useTheme';
 import { createSellerStyles } from '../../../styles/sellerStyles';
 
 const SellerCard = ({ 
@@ -16,22 +16,23 @@ const SellerCard = ({
   iconColor,
   ...props 
 }) => {
-  const styles = createSellerStyles(sellerTheme);
+  const { theme } = useTheme();
+  const styles = createSellerStyles(theme);
   
   const getCardStyle = () => {
     const baseStyle = styles.card;
     
     switch (variant) {
       case 'primary':
-        return { ...baseStyle, backgroundColor: sellerTheme.colors.cardPrimary };
+        return { ...baseStyle, backgroundColor: theme.colors.cardPrimary || theme.colors.surface };
       case 'secondary':
-        return { ...baseStyle, backgroundColor: sellerTheme.colors.cardSecondary };
+        return { ...baseStyle, backgroundColor: theme.colors.cardSecondary || theme.colors.surface };
       case 'accent':
-        return { ...baseStyle, backgroundColor: sellerTheme.colors.cardAccent };
+        return { ...baseStyle, backgroundColor: theme.colors.cardAccent || theme.colors.surface };
       case 'warning':
-        return { ...baseStyle, backgroundColor: sellerTheme.colors.cardWarning };
+        return { ...baseStyle, backgroundColor: theme.colors.cardWarning || theme.colors.surface };
       case 'error':
-        return { ...baseStyle, backgroundColor: sellerTheme.colors.cardError };
+        return { ...baseStyle, backgroundColor: theme.colors.cardError || theme.colors.surface };
       default:
         return baseStyle;
     }
@@ -46,8 +47,8 @@ const SellerCard = ({
               <Icon 
                 name={icon} 
                 size={24} 
-                color={iconColor || sellerTheme.colors.primary} 
-                style={{ marginRight: sellerTheme.spacing.s }}
+                color={iconColor || theme.colors.primary} 
+                style={{ marginRight: theme.spacing.s }}
               />
             )}
             <View style={{ flex: 1 }}>
