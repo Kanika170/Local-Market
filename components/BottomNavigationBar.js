@@ -7,7 +7,41 @@ import SearchIcon from './icons/SearchIcon';
 import ShoppingBagIcon from './icons/ShoppingBagIcon';
 import ProfileIcon from './icons/ProfileIcon';
 
-const BottomNavigationBar = ({ navigation, activeTab, translateY = new Animated.Value(1) }) => {
+const NavItem = ({ label, icon: Icon, isActive, onPress, badge, theme, styles }) => (
+  <TouchableOpacity 
+    style={styles.navItem}
+    onPress={onPress}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+    accessibilityState={{ selected: isActive }}
+  >
+    <View style={styles.iconContainer}>
+      <Icon 
+        size={24} 
+        color={isActive ? theme.colors.primary : theme.colors.text.secondary} 
+      />
+      {badge > 0 && (
+        <View style={[styles.badge, { backgroundColor: theme.colors.primary }]}>
+          <Text style={styles.badgeText}>
+            {badge > 99 ? '99+' : badge}
+          </Text>
+        </View>
+      )}
+    </View>
+    <Text style={[
+      styles.navText,
+      isActive && styles.activeText,
+      { color: isActive ? theme.colors.primary : theme.colors.text.secondary }
+    ]}>{label}</Text>
+  </TouchableOpacity>
+);
+
+const BottomNavigationBar = ({ 
+  navigation, 
+  activeTab, 
+  translateY = new Animated.Value(1),
+  badges = {} // { home: 0, search: 0, lists: 0, profile: 0 }
+}) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets);
@@ -17,66 +51,54 @@ const BottomNavigationBar = ({ navigation, activeTab, translateY = new Animated.
     translateY: translateY.interpolate({
       inputRange: [0, 1],
       outputRange: [100, 0], // Move down by container height when hidden
+      extrapolate: 'clamp',
     }),
   }];
 
+  const navItems = [
+    {
+      label: 'Home',
+      icon: HomeIcon,
+      route: 'CustomerHomeFeed',
+      badge: badges.home || 0,
+    },
+    {
+      label: 'Search',
+      icon: SearchIcon,
+      route: 'SmartProductSearch',
+      badge: badges.search || 0,
+    },
+    {
+      label: 'Lists',
+      icon: ShoppingBagIcon,
+      route: 'Lists',
+      badge: badges.lists || 0,
+    },
+    {
+      label: 'Profile',
+      icon: ProfileIcon,
+      route: 'ProfileScreen',
+      badge: badges.profile || 0,
+    },
+  ];
+
   return (
-    <Animated.View style={[styles.container, { transform }]}>
-      <TouchableOpacity 
-        style={styles.navItem}
-        onPress={() => navigation.navigate('CustomerHomeFeed')}
-      >
-        <HomeIcon 
-          size={24} 
-          color={activeTab === 'Home' ? theme.colors.primary : theme.colors.text.secondary} 
+    <Animated.View 
+      style={[styles.container, { transform }]}
+      accessibilityRole="tablist"
+    >
+      {navItems.map((item) => (
+        <NavItem
+          key={item.label}
+          label={item.label}
+          icon={item.icon}
+          isActive={activeTab === item.label}
+          onPress={() => navigation.navigate(item.route)}
+          badge={item.badge}
+          theme={theme}
+          styles={styles}
         />
-        <Text style={[
-          styles.navText,
-          activeTab === 'Home' && styles.activeText
-        ]}>Home</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.navItem}
-        onPress={() => navigation.navigate('SmartProductSearch')}
-      >
-        <SearchIcon 
-          size={24} 
-          color={activeTab === 'Search' ? theme.colors.primary : theme.colors.text.secondary} 
-        />
-        <Text style={[
-          styles.navText,
-          activeTab === 'Search' && styles.activeText
-        ]}>Search</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.navItem}
-        onPress={() => navigation.navigate('Lists')}
-      >
-        <ShoppingBagIcon 
-          size={24} 
-          color={activeTab === 'Lists' ? theme.colors.primary : theme.colors.text.secondary} 
-        />
-        <Text style={[
-          styles.navText,
-          activeTab === 'Lists' && styles.activeText
-        ]}>Lists</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.navItem}
-        onPress={() => navigation.navigate('ProfileScreen')}
-      >
-        <ProfileIcon 
-          size={24} 
-          color={activeTab === 'Profile' ? theme.colors.primary : theme.colors.text.secondary} 
-        />
-        <Text style={[
-          styles.navText,
-          activeTab === 'Profile' && styles.activeText
-        ]}>Profile</Text>
-      </TouchableOpacity>
+      ))}
     </Animated.View>
   );
 };
@@ -110,6 +132,25 @@ const createStyles = (theme, insets) => StyleSheet.create({
   navItem: {
     flex: 1,
     alignItems: 'center',
+  },
+  iconContainer: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
   },
   navText: {
     fontSize: 12,

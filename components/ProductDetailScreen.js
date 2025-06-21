@@ -6,6 +6,8 @@ import { useShoppingList } from '../context/ShoppingListContext';
 import { getProductPriceComparison } from '../data/staticData';
 import PageIndicators from './PageIndicators';
 import SaveToListModal from './common/SaveToListModal';
+import ScreenWrapper from './common/ScreenWrapper';
+import AppHeader from './common/AppHeader';
 
 const ProductDetailScreen = ({ route, onBack }) => {
   const navigation = useNavigation();
@@ -73,33 +75,39 @@ const ProductDetailScreen = ({ route, onBack }) => {
   const lowestPrice = comparisonData ? Math.min(...comparisonData.prices.map(p => p.price)) : (product.price || 0);
   const availableShops = comparisonData ? comparisonData.prices.length : 1;
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={onBack || (() => navigation.goBack())}
-        >
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Product Details</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity 
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('ChatScreen')}
-          >
-            <Text style={styles.headerIcon}>💬</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('NotificationScreen')}
-          >
-            <Text style={styles.headerIcon}>🔔</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+  const headerRightComponent = (
+    <View style={styles.headerRight}>
+      <TouchableOpacity 
+        style={styles.headerButton}
+        onPress={() => navigation.navigate('ChatScreen')}
+      >
+        <Text style={styles.headerIcon}>💬</Text>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={styles.headerButton}
+        onPress={() => navigation.navigate('NotificationScreen')}
+      >
+        <Text style={styles.headerIcon}>🔔</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
+  return (
+    <ScreenWrapper
+      header={
+        <AppHeader
+          title="Product Details"
+          showBack={true}
+          onBackPress={onBack || (() => navigation.goBack())}
+          rightComponent={headerRightComponent}
+        />
+      }
+      showBottomNav={true}
+      bottomNavProps={{
+        navigation,
+        activeTab: 'Search'
+      }}
+    >
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Product Image */}
         <View style={styles.imageContainer}>
@@ -290,74 +298,26 @@ const ProductDetailScreen = ({ route, onBack }) => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CustomerHomeFeed')}>
-          <Text style={styles.navIcon}>🏠</Text>
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('SmartProductSearch')}>
-          <Text style={styles.navIcon}>🔍</Text>
-          <Text style={styles.navText}>Search</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Lists')}>
-          <Text style={styles.navIcon}>📋</Text>
-          <Text style={styles.navText}>Lists</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ProfileScreen')}>
-          <Text style={styles.navIcon}>👤</Text>
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ScreenWrapper>
   );
 };
 
 const createStyles = (theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  header: {
-    backgroundColor: theme.colors.primary,
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  backButton: {
-    flex: 1,
-  },
-  backButtonText: {
-    color: theme.colors.text.inverse,
-    fontSize: 16,
-  },
-  headerTitle: {
-    color: theme.colors.text.inverse,
-    fontSize: 18,
-    fontWeight: '600',
-    flex: 2,
-    textAlign: 'center',
-  },
   headerRight: {
     flexDirection: 'row',
-    flex: 1,
-    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   headerButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    backgroundColor: theme.colors.primary + '20',
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
   },
   headerIcon: {
-    fontSize: 20,
+    fontSize: 18,
   },
   content: {
     flex: 1,
@@ -722,26 +682,6 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.colors.text.inverse,
     fontSize: 12,
     fontWeight: '500',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-    paddingVertical: 12,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  navIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-    color: theme.colors.text.secondary,
-  },
-  navText: {
-    fontSize: 12,
-    color: theme.colors.text.secondary,
   },
 });
 

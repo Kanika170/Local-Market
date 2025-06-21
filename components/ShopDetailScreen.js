@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../theme/useTheme';
 import TabNavigator from './shop-detail/TabNavigator';
-import ShopHeader from './shop-detail/components/ShopHeader';
 import ShopInfo from './shop-detail/components/ShopInfo';
 import ShopImageGallery from './shop-detail/components/ShopImageGallery';
 import AboutTab from './shop-detail/tabs/AboutTab';
@@ -12,7 +11,8 @@ import PostsTab from './shop-detail/tabs/PostsTab';
 import ReviewsTab from './shop-detail/tabs/ReviewsTab';
 import SimilarShopsTab from './shop-detail/tabs/SimilarShopsTab';
 import ShopReviewModal from './common/ShopReviewModal';
-import BottomNavigationBar from './BottomNavigationBar';
+import ScreenWrapper from './common/ScreenWrapper';
+import AppHeader from './common/AppHeader';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { mockReviews } from '../data/mockReviewData';
 
@@ -206,20 +206,43 @@ const ShopDetailScreen = () => {
     }
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Sticky Header */}
-      <ShopHeader
-        onBack={() => navigation.goBack()}
-        onChat={() => navigation.navigate('ChatScreen')}
-        onNotification={() => navigation.navigate('NotificationScreen')}
-        shopName={shop?.name || "Green Grocery Store"}
-      />
+  const headerRightComponent = (
+    <View style={styles.headerRight}>
+      <TouchableOpacity 
+        style={styles.headerButton}
+        onPress={() => navigation.navigate('ChatScreen')}
+      >
+        <Text style={styles.headerIcon}>💬</Text>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={styles.headerButton}
+        onPress={() => navigation.navigate('NotificationScreen')}
+      >
+        <Text style={styles.headerIcon}>🔔</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
-      {/* Scrollable Content */}
+  return (
+    <ScreenWrapper
+      header={
+        <AppHeader
+          title={shop?.name || "Green Grocery Store"}
+          showBack={true}
+          onBackPress={() => navigation.goBack()}
+          rightComponent={headerRightComponent}
+        />
+      }
+      showBottomNav={true}
+      bottomNavProps={{
+        navigation,
+        activeTab: 'Home',
+        translateY: bottomBarTranslateY
+      }}
+    >
       <ScrollView
         style={styles.scrollContainer}
-        contentContainerStyle={{ paddingBottom: 50 }} // Add this line
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={scrollEventThrottle}
@@ -253,23 +276,32 @@ const ShopDetailScreen = () => {
         onSubmit={handleReviewSubmit}
         shop={shop}
       />
-
-      <BottomNavigationBar
-        navigation={navigation}
-        activeTab="Home"
-        translateY={bottomBarTranslateY}
-      />
-    </View>
+    </ScreenWrapper>
   );
 };
 
 const createStyles = (theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    width: 36,
+    height: 36,
+    backgroundColor: theme.colors.primary + '20',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  headerIcon: {
+    fontSize: 18,
   },
   scrollContainer: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 50,
   },
   tabContent: {
     flex: 1,

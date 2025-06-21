@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
-import BottomNavigationBar from './BottomNavigationBar';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { useTheme } from '../theme/useTheme';
+import ScreenWrapper from './common/ScreenWrapper';
+import AppHeader from './common/AppHeader';
 
 const SmartProductSearch = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [searchQuery, setSearchQuery] = useState('wireless headphones');
   const [selectedFilters, setSelectedFilters] = useState({
     price: ['Under $200'],
@@ -175,21 +179,27 @@ const SmartProductSearch = ({ navigation }) => {
     </View>
   );
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerIcon}>🛍️</Text>
-          <Text style={styles.headerTitle}>Shopping Companion</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>Buy</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+  const headerRightComponent = (
+    <TouchableOpacity style={styles.headerButton}>
+      <Text style={styles.headerButtonText}>Buy</Text>
+    </TouchableOpacity>
+  );
 
+  return (
+    <ScreenWrapper
+      header={
+        <AppHeader
+          title="Shopping Companion"
+          leftComponent={<Text style={styles.headerIcon}>🛍️</Text>}
+          rightComponent={headerRightComponent}
+        />
+      }
+      showBottomNav={true}
+      bottomNavProps={{
+        navigation,
+        activeTab: 'Search'
+      }}
+    >
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchContainer}>
@@ -266,103 +276,74 @@ const SmartProductSearch = ({ navigation }) => {
           ))}
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <BottomNavigationBar navigation={navigation} activeTab="Search" />
-    </View>
+    </ScreenWrapper>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    backgroundColor: '#9C27B0',
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+const createStyles = (theme) => StyleSheet.create({
   headerIcon: {
     fontSize: 20,
-    marginRight: 8,
-  },
-  headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  headerRight: {
-    flexDirection: 'row',
+    color: theme.colors.text.inverse,
   },
   headerButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: theme.colors.primary + '20',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 15,
   },
   headerButtonText: {
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
     fontSize: 14,
     fontWeight: '500',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: theme.spacing.m,
     paddingBottom: 80,
   },
   searchContainer: {
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: theme.spacing.m,
+    marginBottom: theme.spacing.l,
   },
   searchInput: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.l,
+    paddingHorizontal: theme.spacing.l,
+    paddingVertical: theme.spacing.m,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.colors.border,
   },
   filtersSection: {
-    marginBottom: 20,
+    marginBottom: theme.spacing.l,
   },
   filtersHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: theme.spacing.m,
   },
   filtersTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333333',
+    ...theme.typography.h3,
+    color: theme.colors.text.primary,
   },
   clearAllText: {
-    color: '#9C27B0',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '500',
   },
   filterCategoriesContainer: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.m,
   },
   filterCategory: {
-    backgroundColor: '#F3E5F5',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 12,
+    backgroundColor: theme.colors.primary + '10',
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.s,
+    borderRadius: theme.borderRadius.l,
+    marginRight: theme.spacing.s,
   },
   filterCategoryText: {
-    color: '#9C27B0',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -371,34 +352,34 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   activeFilter: {
-    backgroundColor: '#9C27B0',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    marginRight: 8,
-    marginBottom: 8,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.s,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.m,
+    marginRight: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
   },
   activeFilterText: {
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
     fontSize: 12,
     fontWeight: '500',
   },
   removeFilterText: {
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
     fontSize: 12,
-    marginLeft: 4,
+    marginLeft: theme.spacing.xs,
   },
   resultsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: theme.spacing.l,
   },
   resultsCount: {
     fontSize: 16,
-    color: '#666666',
+    color: theme.colors.text.secondary,
   },
   sortContainer: {
     flexDirection: 'row',
@@ -406,25 +387,25 @@ const styles = StyleSheet.create({
   },
   sortLabel: {
     fontSize: 14,
-    color: '#666666',
-    marginRight: 8,
+    color: theme.colors.text.secondary,
+    marginRight: theme.spacing.xs,
   },
   sortDropdown: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.s,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.s,
   },
   sortValue: {
     fontSize: 14,
-    color: '#333333',
-    marginRight: 4,
+    color: theme.colors.text.primary,
+    marginRight: theme.spacing.xs,
   },
   dropdownArrow: {
     fontSize: 10,
-    color: '#666666',
+    color: theme.colors.text.secondary,
   },
   productGrid: {
     flexDirection: 'row',
@@ -433,62 +414,58 @@ const styles = StyleSheet.create({
   },
   productCardWrapper: {
     width: '48%',
-    marginBottom: 16,
+    marginBottom: theme.spacing.m,
   },
   rightCard: {
     marginLeft: '4%',
   },
   productCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.m,
+    padding: theme.spacing.s,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.colors.border,
     position: 'relative',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    ...theme.shadows.default,
   },
   discountBadge: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: '#FF5722',
-    paddingHorizontal: 6,
+    top: theme.spacing.xs,
+    left: theme.spacing.xs,
+    backgroundColor: theme.colors.error,
+    paddingHorizontal: theme.spacing.xs,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: theme.borderRadius.xs,
     zIndex: 1,
   },
   discountText: {
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
     fontSize: 10,
     fontWeight: '600',
   },
   badge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    paddingHorizontal: 6,
+    top: theme.spacing.xs,
+    right: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.xs,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: theme.borderRadius.xs,
     zIndex: 1,
   },
   hotBadge: {
-    backgroundColor: '#FF5722',
+    backgroundColor: theme.colors.error,
   },
   newBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: theme.colors.success,
   },
   badgeText: {
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
     fontSize: 10,
     fontWeight: '600',
   },
   productImageContainer: {
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: theme.spacing.s,
   },
   productImage: {
     fontSize: 60,
@@ -499,37 +476,37 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333333',
-    marginBottom: 6,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
     textAlign: 'left',
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: theme.spacing.xs,
   },
   stars: {
     fontSize: 12,
-    marginRight: 4,
+    marginRight: theme.spacing.xs,
   },
   reviewCount: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.colors.text.secondary,
   },
   priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.xs,
   },
   price: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#9C27B0',
-    marginRight: 8,
+    color: theme.colors.primary,
+    marginRight: theme.spacing.xs,
   },
   originalPrice: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.colors.text.tertiary,
     textDecorationLine: 'line-through',
   },
   deliveryContainer: {
@@ -538,45 +515,13 @@ const styles = StyleSheet.create({
   },
   deliveryIcon: {
     fontSize: 12,
-    marginRight: 4,
+    marginRight: theme.spacing.xs,
   },
   deliveryText: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: theme.colors.success,
     fontWeight: '500',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingTop: 12,
-    paddingBottom: 24,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  navIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-    color: '#666666',
-  },
-  activeNavIcon: {
-    color: '#9C27B0',
-  },
-  navText: {
-    fontSize: 12,
-    color: '#666666',
-  },
-  activeNavText: {
-    color: '#9C27B0',
-    fontWeight: '500',
-  },
+  }
 });
 
 export default SmartProductSearch;

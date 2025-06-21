@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, StyleSheet, Animated, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { useTheme } from '../theme/useTheme';
-import BottomNavigationBar from './BottomNavigationBar';
-import SafeAreaWrapper from './common/SafeAreaWrapper';
-import LocationHeader from './common/LocationHeader';
 import FeedSection from './feed/FeedSection';
 import EventsSection from './feed/EventsSection';
 import ProductsSection from './feed/ProductsSection';
@@ -15,6 +12,8 @@ import { ShoppingListProvider } from '../context/ShoppingListContext';
 import { LocationProvider } from '../context/LocationContext';
 import ProductDetailScreen from './ProductDetailScreen';
 import ShopDetailScreen from './ShopDetailScreen';
+import ScreenWrapper from './common/ScreenWrapper';
+import LocationHeader from './common/LocationHeader';
 import { generateFeedData, nearbyEvents, popularProducts } from '../data/feedData';
 
 const CustomerHomeFeed = () => {
@@ -78,24 +77,6 @@ const CustomerHomeFeed = () => {
     setSelectedShop(shopData);
   };
 
-  if (selectedProduct) {
-    return (
-      <ProductDetailScreen 
-        product={selectedProduct}
-        onBack={() => setSelectedProduct(null)}
-      />
-    );
-  }
-
-  if (selectedShop) {
-    return (
-      <ShopDetailScreen
-        shop={selectedShop}
-        onBack={() => setSelectedShop(null)}
-      />
-    );
-  }
-
   const [feedData, setFeedData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -135,10 +116,27 @@ const CustomerHomeFeed = () => {
     <LocationProvider>
       <ShoppingListProvider>
         <FeedInteractionProvider>
-          <SafeAreaWrapper edges={['top']} statusBarStyle="light-content">
-            <View style={styles.container}>
-              <LocationHeader navigation={navigation} />
-
+          {selectedProduct ? (
+            <ProductDetailScreen 
+              product={selectedProduct}
+              onBack={() => setSelectedProduct(null)}
+            />
+          ) : selectedShop ? (
+            <ShopDetailScreen
+              shop={selectedShop}
+              onBack={() => setSelectedShop(null)}
+            />
+          ) : (
+            <ScreenWrapper
+              header={<LocationHeader navigation={navigation} />}
+              showBottomNav={true}
+              bottomNavProps={{
+                navigation,
+                activeTab: 'Home',
+                translateY: bottomBarTranslateY
+              }}
+              statusBarStyle="light-content"
+            >
               <Animated.ScrollView 
                 style={styles.content} 
                 contentContainerStyle={styles.contentContainer}
@@ -152,30 +150,15 @@ const CustomerHomeFeed = () => {
                   </View>
                 ) : renderSections}
               </Animated.ScrollView>
-
-              <BottomNavigationBar 
-                navigation={navigation} 
-                activeTab="Home"
-                translateY={bottomBarTranslateY}
-              />
-            </View>
-          </SafeAreaWrapper>
+            </ScreenWrapper>
+          )}
         </FeedInteractionProvider>
       </ShoppingListProvider>
     </LocationProvider>
   );
 };
 
-const createStyles = (theme, insets) => {
-  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-  const isLandscape = screenWidth > screenHeight;
-  const isTablet = screenWidth > 768;
-  
-  return StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
+const createStyles = (theme) => StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -186,13 +169,9 @@ const createStyles = (theme, insets) => {
     flex: 1,
   },
   contentContainer: {
-    paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 100 : 85),
-    paddingHorizontal: isTablet ? theme.spacing.xl : theme.spacing.m,
-    maxWidth: isTablet ? 1024 : undefined,
-    alignSelf: isTablet ? 'center' : undefined,
-    width: isTablet ? '100%' : undefined,
+    paddingBottom: Platform.OS === 'ios' ? 100 : 85,
+    paddingHorizontal: theme.spacing.m,
   },
-  });
-};
+});
 
 export default CustomerHomeFeed;
