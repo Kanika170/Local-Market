@@ -1,103 +1,37 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Animated } from 'react-native';
 import { useTheme } from '../theme/useTheme';
 import ScreenWrapper from './common/ScreenWrapper';
 import AppHeader from './common/AppHeader';
+import SearchResults from './smart-search/SearchResults';
+import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
 const SmartProductSearch = ({ navigation }) => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  const [searchQuery, setSearchQuery] = useState('wireless headphones');
+  const [searchQuery, setSearchQuery] = useState('cake');
   const [selectedFilters, setSelectedFilters] = useState({
-    price: ['Under $200'],
+    price: ['Under ₹200'],
     rating: ['4+ Stars'],
     availability: [],
     delivery: []
   });
   const [sortBy, setSortBy] = useState('Relevance');
+  const [showResults, setShowResults] = useState(true);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [activeFilterCategory, setActiveFilterCategory] = useState(null);
+  const [showSortModal, setShowSortModal] = useState(false);
 
-  // Static product data for search results
-  const searchResults = [
-    {
-      id: 1,
-      name: 'Sony WH-1000XM4',
-      image: '🎧',
-      rating: 4.5,
-      reviews: 432,
-      price: 249.99,
-      originalPrice: 249.99,
-      discount: 20,
-      freeDelivery: true,
-      badge: null
-    },
-    {
-      id: 2,
-      name: 'Bose QuietComfort 45',
-      image: '🎧',
-      rating: 4.7,
-      reviews: 289,
-      price: 179.99,
-      originalPrice: 179.99,
-      discount: null,
-      freeDelivery: true,
-      badge: null
-    },
-    {
-      id: 3,
-      name: 'Apple AirPods Pro',
-      image: '🎧',
-      rating: 4.6,
-      reviews: 512,
-      price: 189.99,
-      originalPrice: 189.99,
-      discount: null,
-      freeDelivery: true,
-      badge: 'New'
-    },
-    {
-      id: 4,
-      name: 'Jabra Elite 85t',
-      image: '🎧',
-      rating: 4.4,
-      reviews: 178,
-      price: 149.99,
-      originalPrice: 179.99,
-      discount: null,
-      freeDelivery: true,
-      badge: null
-    },
-    {
-      id: 5,
-      name: 'Sennheiser Momentum 3',
-      image: '🎧',
-      rating: 4.3,
-      reviews: 203,
-      price: 199.95,
-      originalPrice: 199.95,
-      discount: null,
-      freeDelivery: true,
-      badge: 'Hot'
-    },
-    {
-      id: 6,
-      name: 'Samsung Galaxy Buds Pro',
-      image: '🎧',
-      rating: 4.5,
-      reviews: 156,
-      price: 129.99,
-      originalPrice: 169.99,
-      discount: null,
-      freeDelivery: true,
-      badge: null
-    }
-  ];
+  const { bottomBarTranslateY, handleScroll, scrollEventThrottle } = useScrollAnimation();
 
   const filterCategories = [
-    { key: 'price', label: 'Price', options: ['Under $100', 'Under $200', '$200-$300', 'Over $300'] },
+    { key: 'price', label: 'Price', options: ['Under ₹100', 'Under ₹200', '₹200-₹500', 'Over ₹500'] },
     { key: 'rating', label: 'Rating', options: ['3+ Stars', '4+ Stars', '4.5+ Stars'] },
     { key: 'availability', label: 'Availability', options: ['In Stock', 'Same Day Delivery', 'Next Day Delivery'] },
     { key: 'delivery', label: 'Delivery', options: ['Free Delivery', 'Express Delivery', 'Store Pickup'] }
   ];
+
+  const sortOptions = ['Relevance', 'Price: Low to High', 'Price: High to Low', 'Rating', 'Distance', 'Newest First'];
 
   const toggleFilter = (category, option) => {
     setSelectedFilters(prev => {
@@ -122,66 +56,144 @@ const SmartProductSearch = ({ navigation }) => {
     });
   };
 
-  const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    const stars = [];
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push('⭐');
-    }
-    if (hasHalfStar) {
-      stars.push('⭐');
-    }
-
-    return stars.join('');
+  const handleSearch = () => {
+    setShowResults(true);
   };
 
-  const renderProductCard = (product) => (
-    <View key={product.id} style={styles.productCard}>
-      {product.discount && (
-        <View style={styles.discountBadge}>
-          <Text style={styles.discountText}>-{product.discount}%</Text>
-        </View>
-      )}
-      {product.badge && (
-        <View style={[styles.badge, product.badge === 'Hot' ? styles.hotBadge : styles.newBadge]}>
-          <Text style={styles.badgeText}>{product.badge}</Text>
-        </View>
-      )}
-      
-      <View style={styles.productImageContainer}>
-        <Text style={styles.productImage}>{product.image}</Text>
-      </View>
-      
-      <View style={styles.productInfo}>
-        <Text style={styles.productName}>{product.name}</Text>
-        
-        <View style={styles.ratingContainer}>
-          <Text style={styles.stars}>{renderStars(product.rating)}</Text>
-          <Text style={styles.reviewCount}>({product.reviews})</Text>
-        </View>
-        
-        <View style={styles.priceContainer}>
-          <Text style={styles.price}>${product.price}</Text>
-          {product.originalPrice !== product.price && (
-            <Text style={styles.originalPrice}>${product.originalPrice}</Text>
-          )}
-        </View>
-        
-        {product.freeDelivery && (
-          <View style={styles.deliveryContainer}>
-            <Text style={styles.deliveryIcon}>🚚</Text>
-            <Text style={styles.deliveryText}>Free delivery</Text>
+  const handleProductPress = (product) => {
+    navigation.navigate('ProductDetail', { product });
+  };
+
+  const handleShopPress = (shop) => {
+    navigation.navigate('ShopDetail', { shop });
+  };
+
+  const handlePostInteraction = (type, data) => {
+    console.log(`Post ${type}:`, data);
+  };
+
+  const openFilterModal = (category) => {
+    setActiveFilterCategory(category);
+    setShowFilterModal(true);
+  };
+
+  const closeFilterModal = () => {
+    setShowFilterModal(false);
+    setActiveFilterCategory(null);
+  };
+
+  const openSortModal = () => {
+    setShowSortModal(true);
+  };
+
+  const closeSortModal = () => {
+    setShowSortModal(false);
+  };
+
+  const selectSortOption = (option) => {
+    setSortBy(option);
+    closeSortModal();
+  };
+
+  const getActiveFiltersCount = () => {
+    return Object.values(selectedFilters).reduce((count, filters) => count + filters.length, 0);
+  };
+
+  const renderFilterModal = () => {
+    if (!activeFilterCategory) return null;
+
+    const category = filterCategories.find(cat => cat.key === activeFilterCategory);
+    
+    return (
+      <Modal
+        visible={showFilterModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={closeFilterModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{category.label}</Text>
+              <TouchableOpacity onPress={closeFilterModal}>
+                <Text style={styles.modalCloseButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody}>
+              {category.options.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.filterOption,
+                    selectedFilters[activeFilterCategory].includes(option) && styles.selectedFilterOption
+                  ]}
+                  onPress={() => toggleFilter(activeFilterCategory, option)}
+                >
+                  <Text style={[
+                    styles.filterOptionText,
+                    selectedFilters[activeFilterCategory].includes(option) && styles.selectedFilterOptionText
+                  ]}>
+                    {option}
+                  </Text>
+                  {selectedFilters[activeFilterCategory].includes(option) && (
+                    <Text style={styles.checkmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
-        )}
+        </View>
+      </Modal>
+    );
+  };
+
+  const renderSortModal = () => (
+    <Modal
+      visible={showSortModal}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={closeSortModal}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Sort By</Text>
+            <TouchableOpacity onPress={closeSortModal}>
+              <Text style={styles.modalCloseButton}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.modalBody}>
+            {sortOptions.map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={[
+                  styles.filterOption,
+                  sortBy === option && styles.selectedFilterOption
+                ]}
+                onPress={() => selectSortOption(option)}
+              >
+                <Text style={[
+                  styles.filterOptionText,
+                  sortBy === option && styles.selectedFilterOptionText
+                ]}>
+                  {option}
+                </Text>
+                {sortBy === option && (
+                  <Text style={styles.checkmark}>✓</Text>
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       </View>
-    </View>
+    </Modal>
   );
 
   const headerRightComponent = (
     <TouchableOpacity style={styles.headerButton}>
-      <Text style={styles.headerButtonText}>Buy</Text>
+      <Text style={styles.headerButtonText}>🛒</Text>
     </TouchableOpacity>
   );
 
@@ -189,98 +201,132 @@ const SmartProductSearch = ({ navigation }) => {
     <ScreenWrapper
       header={
         <AppHeader
-          title="Shopping Companion"
-          leftComponent={<Text style={styles.headerIcon}>🛍️</Text>}
+          title="Smart Search"
+          leftComponent={<Text style={styles.headerIcon}>🔍</Text>}
           rightComponent={headerRightComponent}
         />
       }
       showBottomNav={true}
       bottomNavProps={{
         navigation,
-        activeTab: 'Search'
+        activeTab: 'Search',
+        animatedStyle: {
+          transform: [{
+            translateY: bottomBarTranslateY.interpolate({
+              inputRange: [0, 1],
+              outputRange: [100, 0],
+            })
+          }]
+        }
       }}
     >
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.container}
+        onScroll={handleScroll}
+        scrollEventThrottle={scrollEventThrottle}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search products..."
-            placeholderTextColor="#999"
+            placeholder="Search for products, shops, or posts..."
+            placeholderTextColor={theme.colors.text.tertiary}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
           />
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <Text style={styles.searchButtonText}>🔍</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Filters Section */}
         <View style={styles.filtersSection}>
           <View style={styles.filtersHeader}>
-            <Text style={styles.filtersTitle}>Filters</Text>
-            <TouchableOpacity onPress={clearAllFilters}>
-              <Text style={styles.clearAllText}>Clear All</Text>
-            </TouchableOpacity>
+            <Text style={styles.filtersTitle}>
+              Filters {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
+            </Text>
+            <View style={styles.filterActions}>
+              <TouchableOpacity onPress={openSortModal} style={styles.sortButton}>
+                <Text style={styles.sortButtonText}>Sort: {sortBy}</Text>
+                <Text style={styles.dropdownArrow}>▼</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={clearAllFilters}>
+                <Text style={styles.clearAllText}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Filter Categories */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterCategoriesContainer}>
             {filterCategories.map((category) => (
-              <TouchableOpacity key={category.key} style={styles.filterCategory}>
-                <Text style={styles.filterCategoryText}>{category.label}</Text>
+              <TouchableOpacity 
+                key={category.key} 
+                style={[
+                  styles.filterCategory,
+                  selectedFilters[category.key].length > 0 && styles.activeFilterCategory
+                ]}
+                onPress={() => openFilterModal(category.key)}
+              >
+                <Text style={[
+                  styles.filterCategoryText,
+                  selectedFilters[category.key].length > 0 && styles.activeFilterCategoryText
+                ]}>
+                  {category.label}
+                  {selectedFilters[category.key].length > 0 && ` (${selectedFilters[category.key].length})`}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
           {/* Active Filters */}
-          <View style={styles.activeFiltersContainer}>
-            {selectedFilters.price.map((filter) => (
-              <TouchableOpacity 
-                key={filter} 
-                style={styles.activeFilter}
-                onPress={() => toggleFilter('price', filter)}
-              >
-                <Text style={styles.activeFilterText}>{filter}</Text>
-                <Text style={styles.removeFilterText}> ✕</Text>
-              </TouchableOpacity>
-            ))}
-            {selectedFilters.rating.map((filter) => (
-              <TouchableOpacity 
-                key={filter} 
-                style={styles.activeFilter}
-                onPress={() => toggleFilter('rating', filter)}
-              >
-                <Text style={styles.activeFilterText}>{filter}</Text>
-                <Text style={styles.removeFilterText}> ✕</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Results Header */}
-        <View style={styles.resultsHeader}>
-          <Text style={styles.resultsCount}>24 results found</Text>
-          <View style={styles.sortContainer}>
-            <Text style={styles.sortLabel}>Sort by:</Text>
-            <TouchableOpacity style={styles.sortDropdown}>
-              <Text style={styles.sortValue}>{sortBy}</Text>
-              <Text style={styles.dropdownArrow}>▼</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Product Grid */}
-        <View style={styles.productGrid}>
-          {searchResults.map((product, index) => (
-            <View key={product.id} style={[styles.productCardWrapper, index % 2 === 1 && styles.rightCard]}>
-              {renderProductCard(product)}
+          {getActiveFiltersCount() > 0 && (
+            <View style={styles.activeFiltersContainer}>
+              {Object.entries(selectedFilters).map(([category, filters]) =>
+                filters.map((filter) => (
+                  <TouchableOpacity 
+                    key={`${category}-${filter}`} 
+                    style={styles.activeFilter}
+                    onPress={() => toggleFilter(category, filter)}
+                  >
+                    <Text style={styles.activeFilterText}>{filter}</Text>
+                    <Text style={styles.removeFilterText}> ✕</Text>
+                  </TouchableOpacity>
+                ))
+              )}
             </View>
-          ))}
+          )}
         </View>
+
+        {/* Search Results with Tabs */}
+        {showResults && (
+          <SearchResults
+            searchQuery={searchQuery}
+            selectedFilters={selectedFilters}
+            sortBy={sortBy}
+            onProductPress={handleProductPress}
+            onShopPress={handleShopPress}
+            onPostInteraction={handlePostInteraction}
+          />
+        )}
       </ScrollView>
+
+      {/* Filter Modal */}
+      {renderFilterModal()}
+
+      {/* Sort Modal */}
+      {renderSortModal()}
     </ScreenWrapper>
   );
 };
 
 const createStyles = (theme) => StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.m,
+  },
   headerIcon: {
     fontSize: 20,
     color: theme.colors.text.inverse,
@@ -293,19 +339,16 @@ const createStyles = (theme) => StyleSheet.create({
   },
   headerButtonText: {
     color: theme.colors.text.inverse,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.m,
-    paddingBottom: 80,
+    fontSize: 16,
   },
   searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: theme.spacing.m,
     marginBottom: theme.spacing.l,
   },
   searchInput: {
+    flex: 1,
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.l,
     paddingHorizontal: theme.spacing.l,
@@ -313,6 +356,18 @@ const createStyles = (theme) => StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    marginRight: theme.spacing.s,
+  },
+  searchButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.l,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.m,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    fontSize: 18,
   },
   filtersSection: {
     marginBottom: theme.spacing.l,
@@ -327,6 +382,28 @@ const createStyles = (theme) => StyleSheet.create({
     ...theme.typography.h3,
     color: theme.colors.text.primary,
   },
+  filterActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.s,
+    borderRadius: theme.borderRadius.m,
+    marginRight: theme.spacing.m,
+  },
+  sortButtonText: {
+    ...theme.typography.body2,
+    color: theme.colors.text.primary,
+    marginRight: theme.spacing.xs,
+  },
+  dropdownArrow: {
+    fontSize: 10,
+    color: theme.colors.text.secondary,
+  },
   clearAllText: {
     color: theme.colors.primary,
     fontSize: 14,
@@ -336,16 +413,25 @@ const createStyles = (theme) => StyleSheet.create({
     marginBottom: theme.spacing.m,
   },
   filterCategory: {
-    backgroundColor: theme.colors.primary + '10',
+    backgroundColor: theme.colors.surface,
     paddingHorizontal: theme.spacing.m,
     paddingVertical: theme.spacing.s,
     borderRadius: theme.borderRadius.l,
     marginRight: theme.spacing.s,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  activeFilterCategory: {
+    backgroundColor: theme.colors.primary + '10',
+    borderColor: theme.colors.primary,
   },
   filterCategoryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text.primary,
     fontSize: 14,
     fontWeight: '500',
+  },
+  activeFilterCategoryText: {
+    color: theme.colors.primary,
   },
   activeFiltersContainer: {
     flexDirection: 'row',
@@ -371,156 +457,62 @@ const createStyles = (theme) => StyleSheet.create({
     fontSize: 12,
     marginLeft: theme.spacing.xs,
   },
-  resultsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.l,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
-  resultsCount: {
-    fontSize: 16,
-    color: theme.colors.text.secondary,
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sortLabel: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-    marginRight: theme.spacing.xs,
-  },
-  sortDropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.s,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.s,
-  },
-  sortValue: {
-    fontSize: 14,
-    color: theme.colors.text.primary,
-    marginRight: theme.spacing.xs,
-  },
-  dropdownArrow: {
-    fontSize: 10,
-    color: theme.colors.text.secondary,
-  },
-  productGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  productCardWrapper: {
-    width: '48%',
-    marginBottom: theme.spacing.m,
-  },
-  rightCard: {
-    marginLeft: '4%',
-  },
-  productCard: {
+  modalContent: {
     backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.m,
-    padding: theme.spacing.s,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    position: 'relative',
-    ...theme.shadows.default,
+    borderTopLeftRadius: theme.borderRadius.l,
+    borderTopRightRadius: theme.borderRadius.l,
+    paddingBottom: theme.spacing.xl + 20, // Extra padding for bottom safe area
+    maxHeight: '80%',
   },
-  discountBadge: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    left: theme.spacing.xs,
-    backgroundColor: theme.colors.error,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.xs,
-    zIndex: 1,
-  },
-  discountText: {
-    color: theme.colors.text.inverse,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  badge: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.xs,
-    zIndex: 1,
-  },
-  hotBadge: {
-    backgroundColor: theme.colors.error,
-  },
-  newBadge: {
-    backgroundColor: theme.colors.success,
-  },
-  badgeText: {
-    color: theme.colors.text.inverse,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  productImageContainer: {
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.s,
+    padding: theme.spacing.m,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
   },
-  productImage: {
-    fontSize: 60,
-  },
-  productInfo: {
-    alignItems: 'flex-start',
-  },
-  productName: {
-    fontSize: 14,
-    fontWeight: '600',
+  modalTitle: {
+    ...theme.typography.h3,
     color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xs,
-    textAlign: 'left',
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xs,
-  },
-  stars: {
-    fontSize: 12,
-    marginRight: theme.spacing.xs,
-  },
-  reviewCount: {
-    fontSize: 12,
+  modalCloseButton: {
+    fontSize: 20,
     color: theme.colors.text.secondary,
+    padding: theme.spacing.s,
   },
-  priceContainer: {
+  modalBody: {
+    padding: theme.spacing.m,
+  },
+  filterOption: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.xs,
+    paddingVertical: theme.spacing.m,
+    paddingHorizontal: theme.spacing.s,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
   },
-  price: {
-    fontSize: 16,
-    fontWeight: '700',
+  selectedFilterOption: {
+    backgroundColor: theme.colors.primary + '10',
+  },
+  filterOptionText: {
+    ...theme.typography.body1,
+    color: theme.colors.text.primary,
+  },
+  selectedFilterOptionText: {
     color: theme.colors.primary,
-    marginRight: theme.spacing.xs,
+    fontWeight: '600',
   },
-  originalPrice: {
-    fontSize: 12,
-    color: theme.colors.text.tertiary,
-    textDecorationLine: 'line-through',
-  },
-  deliveryContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  deliveryIcon: {
-    fontSize: 12,
-    marginRight: theme.spacing.xs,
-  },
-  deliveryText: {
-    fontSize: 12,
-    color: theme.colors.success,
-    fontWeight: '500',
+  checkmark: {
+    color: theme.colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
   }
 });
 
