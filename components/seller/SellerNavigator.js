@@ -18,9 +18,8 @@ import ShopNotificationScreen from './notifications/ShopNotificationScreen';
 import ProductListScreen from './products/ProductListScreen';
 import AddEditProductScreen from './products/AddEditProductScreen';
 
-// Feed & Posts
-import CreatePostScreen from './feed/CreatePostScreen';
-import ShopPostsScreen from './feed/ShopPostsScreen';
+// Feed Screen
+import SellerFeedScreen from './feed/SellerFeedScreen';
 
 // Chat & Communication
 import SellerChatDashboardScreen from './chat/SellerChatDashboardScreen';
@@ -67,8 +66,7 @@ const productScreens = [
 ];
 
 const postScreens = [
-  { name: 'ShopPosts', component: ShopPostsScreen },
-  { name: 'CreatePost', component: CreatePostScreen },
+  { name: 'Feed', component: SellerFeedScreen },
 ];
 
 const chatScreens = [
@@ -102,10 +100,10 @@ const TAB_CONFIG = [
     label: 'Products',
   },
   {
-    name: 'Posts',
+    name: 'Feed',
     component: PostsNavigator,
     icon: 'post',
-    label: 'Posts',
+    label: 'Feed',
   },
   {
     name: 'Chat',
