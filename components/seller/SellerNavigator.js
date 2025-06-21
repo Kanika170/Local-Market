@@ -27,9 +27,16 @@ import SellerChatDashboardScreen from './chat/SellerChatDashboardScreen';
 // Settings & Profile
 import ShopSettingsScreen from './settings/ShopSettingsScreen';
 
+// Import new screens
+import AnalyticsScreen from './analytics/AnalyticsScreen';
+import StockManagementScreen from './stock/StockManagementScreen';
+import TasksScreen from './tasks/TasksScreen';
+import ActivityScreen from './activity/ActivityScreen';
+
+// Import remaining screens
+import UpdateStockScreen from './stock/UpdateStockScreen';
+
 // Placeholder components for upcoming features
-const AnalyticsScreen = () => null;
-const StockManagementScreen = () => null;
 const ReviewManagementScreen = () => null;
 const OrdersScreen = () => null;
 
@@ -55,6 +62,8 @@ const dashboardScreens = [
   { name: 'ShopNotificationPreviewScreen', component: require('./notifications/ShopNotificationPreviewScreen').default },
   { name: 'Analytics', component: AnalyticsScreen },
   { name: 'Orders', component: OrdersScreen },
+  { name: 'Tasks', component: TasksScreen },
+  { name: 'Activity', component: ActivityScreen },
 ];
 
 const productScreens = [
@@ -63,10 +72,12 @@ const productScreens = [
   { name: 'EditProduct', component: AddEditProductScreen },
   { name: 'ProductShow', component: require('./products/ProductShowScreen').default },
   { name: 'StockManagement', component: StockManagementScreen },
+  { name: 'UpdateStock', component: UpdateStockScreen },
 ];
 
 const postScreens = [
   { name: 'Feed', component: SellerFeedScreen },
+  { name: 'CreatePost', component: require('./feed/CreatePostScreen').default },
 ];
 
 const chatScreens = [

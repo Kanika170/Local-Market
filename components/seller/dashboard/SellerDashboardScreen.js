@@ -45,16 +45,16 @@ const SellerDashboardScreen = () => {
   const handleStatPress = (statType) => {
     switch (statType) {
       case 'visits':
-        navigation.navigate('Analytics', { tab: 'visitors' });
+        navigation.navigate('Dashboard', { screen: 'Analytics', params: { tab: 'visitors' } });
         break;
       case 'inquiries':
-        navigation.navigate('Chat');
+        navigation.navigate('Chat', { screen: 'ChatDashboard' });
         break;
       case 'popular':
-        navigation.navigate('Products', { filter: 'popular' });
+        navigation.navigate('Products', { screen: 'ProductsList', params: { filter: 'popular' } });
         break;
       case 'pending':
-        navigation.navigate('Tasks');
+        navigation.navigate('Dashboard', { screen: 'Tasks' });
         break;
     }
   };
@@ -62,10 +62,10 @@ const SellerDashboardScreen = () => {
   const handleActionPress = (actionId) => {
     switch (actionId) {
       case 'add_product':
-        navigation.navigate('AddProduct');
+        navigation.navigate('Products', { screen: 'AddProduct' });
         break;
       case 'create_post':
-        navigation.navigate('CreatePost');
+        navigation.navigate('Feed', { screen: 'CreatePost' });
         break;
       case 'messages':
         navigation.navigate('Chat');
@@ -79,10 +79,10 @@ const SellerDashboardScreen = () => {
   const handleAlertPress = (alert) => {
     switch (alert.subType) {
       case 'low_stock':
-        navigation.navigate('Products', { filter: 'low_stock' });
+        navigation.navigate('Products', { screen: 'StockManagement' });
         break;
       case 'performance':
-        navigation.navigate('CreatePost', { type: 'deal' });
+        navigation.navigate('Feed', { screen: 'CreatePost', params: { type: 'deal' } });
         break;
       default:
         if (alert.link) {
@@ -93,10 +93,25 @@ const SellerDashboardScreen = () => {
 
   const handleActivityPress = (activity) => {
     if (activity === 'viewAll') {
-      navigation.navigate('Activity');
+      navigation.navigate('Dashboard', { screen: 'Activity' });
     } else if (activity.link) {
       const [screen, params] = activity.link.split('/');
-      navigation.navigate(screen, { id: params });
+      switch (screen) {
+        case 'reviews':
+          navigation.navigate('Settings', { screen: 'Reviews', params: { id: params } });
+          break;
+        case 'chat':
+          navigation.navigate('Chat', { screen: 'ChatDashboard', params: { id: params } });
+          break;
+        case 'posts':
+          navigation.navigate('Feed', { screen: 'Feed', params: { id: params } });
+          break;
+        case 'products':
+          navigation.navigate('Products', { screen: 'ProductsList', params: { id: params } });
+          break;
+        default:
+          navigation.navigate(screen, { id: params });
+      }
     }
   };
 

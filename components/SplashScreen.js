@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import ShoppingBagIcon from './ShoppingBagIcon';
 
 const SplashScreen = ({ navigation }) => {
+  // State to track animation completion
+  const [animationComplete, setAnimationComplete] = useState(false);
 
   // Animation refs
   const loadingDotsOpacity = useRef([
@@ -16,6 +18,32 @@ const SplashScreen = ({ navigation }) => {
   ]).current;
 
   const progressWidth = useRef(new Animated.Value(0)).current;
+
+  // Navigation function
+  const navigateToOnboarding = useCallback(() => {
+    try {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'OnboardingScreen' }],
+      });
+    } catch (error) {
+      console.warn('Navigation error:', error);
+      // Fallback navigation if reset fails
+      navigation.replace('OnboardingScreen');
+    }
+  }, [navigation]);
+
+  // Handle navigation when animation completes
+  useEffect(() => {
+    if (animationComplete) {
+      // Use setTimeout to defer navigation to next tick
+      const timeoutId = setTimeout(() => {
+        navigateToOnboarding();
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [animationComplete, navigateToOnboarding]);
 
   // Animate loading dots and progress bar
   useEffect(() => {
@@ -36,30 +64,31 @@ const SplashScreen = ({ navigation }) => {
         ]);
       });
 
-      Animated.loop(
+      return Animated.loop(
         Animated.stagger(100, animations)
-      ).start();
+      );
     };
 
-    Animated.timing(progressWidth, {
+    const dotsAnimation = animateDots();
+    dotsAnimation.start();
+
+    const progressAnimation = Animated.timing(progressWidth, {
       toValue: 1,
       duration: 3000,
       useNativeDriver: false,
-    }).start(() => {
-      try {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'OnboardingScreen' }],
-        });
-      } catch (error) {
-        console.warn('Navigation error:', error);
-        // Fallback navigation if reset fails
-        navigation.replace('OnboardingScreen');
-      }
     });
 
-    animateDots();
-  }, [navigation]);
+    progressAnimation.start(() => {
+      // Set state instead of directly navigating
+      setAnimationComplete(true);
+    });
+
+    // Cleanup function
+    return () => {
+      dotsAnimation.stop();
+      progressAnimation.stop();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -107,18 +136,7 @@ const SplashScreen = ({ navigation }) => {
       {/* Skip Button */}
       <TouchableOpacity 
         style={styles.skipButton} 
-        onPress={() => {
-          try {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'OnboardingScreen' }],
-            });
-          } catch (error) {
-            console.warn('Navigation error:', error);
-            // Fallback navigation if reset fails
-            navigation.replace('OnboardingScreen');
-          }
-        }}
+        onPress={navigateToOnboarding}
       >
         <Text style={styles.skipText}>Skip</Text>
       </TouchableOpacity>
