@@ -44,13 +44,12 @@ const createStyles = (theme) => StyleSheet.create({
   },
   header: {
     backgroundColor: theme.colors.primary,
-    paddingTop:  Platform.OS === 'ios' ? 36 : 12, // reduced from 50
-    paddingBottom: theme.spacing.s,               // reduced from theme.spacing.m
-    paddingHorizontal: theme.spacing.m,           // reduced from theme.spacing.l
+    paddingTop: Platform.OS === 'ios' ? 44 : 48, // match Search Product screen
+    paddingBottom: Platform.OS === 'ios' ? 12 : 15,
+    paddingHorizontal: theme.spacing.l,          // use larger horizontal padding
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: 56,                                // add minHeight for compactness
+    minHeight: 64,                               // match Search Product screen
   },
   backButton: {
     padding: theme.spacing.s,

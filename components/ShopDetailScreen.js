@@ -186,7 +186,7 @@ const ShopDetailScreen = () => {
           <ProductsTab
             products={allProducts}
             featuredProducts={featuredProducts}
-            onProductPress={(product) => navigation.navigate('ProductDetail', { product })}
+            onProductPress={(product) => navigation.navigate('ProductDetailScreen', { product })}
             onAddToCart={handleAddToCart}
           />
         );
@@ -232,6 +232,7 @@ const ShopDetailScreen = () => {
       {/* Scrollable Content */}
       <ScrollView
         style={styles.scrollContainer}
+        contentContainerStyle={{ paddingBottom: 50 }} // Add this line
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={scrollEventThrottle}
