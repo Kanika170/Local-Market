@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -120,9 +121,19 @@ const TAB_CONFIG = [
   },
 ];
 
-// Main Tab Navigator
+// Main Tab Navigator with fixed animation
 const SellerTabNavigator = () => {
   const { theme } = useTheme();
+  const [isTabBarVisible, setIsTabBarVisible] = React.useState(true);
+  const tabBarTranslateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(tabBarTranslateY, {
+      toValue: isTabBarVisible ? 0 : 100,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [isTabBarVisible]);
 
   return (
     <Tab.Navigator
@@ -131,17 +142,28 @@ const SellerTabNavigator = () => {
         tabBarStyle: {
           backgroundColor: theme.colors.background,
           borderTopColor: theme.colors.border,
-          elevation: 0, // Remove shadow on Android
-          shadowOpacity: 0, // Remove shadow on iOS
+          elevation: 8,
+          shadowOpacity: 0.1,
+          shadowOffset: { width: 0, height: -2 },
+          shadowRadius: 8,
           borderTopWidth: 1,
           height: 60,
-          paddingBottom: 8,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+          transform: [{ translateY: tabBarTranslateY }],
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.text.tertiary,
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
+        },
+      }}
+      screenListeners={{
+        state: (e) => {
+          const route = e.data.state.routes[e.data.state.index];
+          if (route.params?.hideTabBar !== undefined) {
+            setIsTabBarVisible(!route.params.hideTabBar);
+          }
         },
       }}
     >

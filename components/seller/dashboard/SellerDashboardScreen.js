@@ -1,355 +1,203 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSeller } from '../../../context/SellerContext';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../../theme/useTheme';
 import { createSellerStyles } from '../../../styles/sellerStyles';
-import SellerCard from '../common/SellerCard';
-import StatsCard from '../common/StatsCard';
-import QuickAction from '../common/QuickAction';
+import { mockDashboardData } from './mockData';
+
+// Import sections
+import DashboardHeader from './sections/DashboardHeader';
+import ShopStatusSection from './sections/ShopStatusSection';
+import StatsSection from './sections/StatsSection';
+import QuickActionsSection from './sections/QuickActionsSection';
+import AlertsSection from './sections/AlertsSection';
+import RecentActivitySection from './sections/RecentActivitySection';
+
+const SCROLL_THRESHOLD = 10;
+const SCROLL_TIMEOUT = 1500;
 
 const SellerDashboardScreen = () => {
   const navigation = useNavigation();
-  const { shopData, analytics, notifications, refreshAnalytics } = useSeller();
-  const [refreshing, setRefreshing] = React.useState(false);
   const { theme } = useTheme();
   const styles = createSellerStyles(theme);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(mockDashboardData.shopData.isOpen);
+  const [dashboardData, setDashboardData] = useState(mockDashboardData);
+  
+  // Scroll management
+  const lastScrollY = useRef(0);
+  const scrollDirection = useRef('up');
+  const scrollTimeout = useRef(null);
+  const [isTabBarVisible, setIsTabBarVisible] = useState(true);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    refreshAnalytics();
-    setTimeout(() => setRefreshing(false), 1000);
-  }, [refreshAnalytics]);
+    setTimeout(() => {
+      setDashboardData(mockDashboardData);
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
-  const quickActions = [
-    { 
-      title: 'Add Product', 
-      icon: 'plus-circle', 
-      color: theme.colors.primary,
-      action: () => navigation.navigate('AddProduct') 
-    },
-    { 
-      title: 'View Orders', 
-      icon: 'clipboard-list', 
-      color: theme.colors.secondary,
-      action: () => navigation.navigate('Orders') 
-    },
-    { 
-      title: 'Create Post', 
-      icon: 'post', 
-      color: theme.colors.accent || theme.colors.info,
-      action: () => navigation.navigate('Posts') 
-    },
-    { 
-      title: 'Messages', 
-      icon: 'message-text', 
-      color: theme.colors.warning,
-      action: () => navigation.navigate('Chat') 
-    },
-    { 
-      title: 'Analytics', 
-      icon: 'chart-line', 
-      color: theme.colors.info,
-      action: () => navigation.navigate('Analytics') 
-    },
-    { 
-      title: 'Settings', 
-      icon: 'cog', 
-      color: theme.colors.text.secondary,
-      action: () => navigation.navigate('Settings') 
-    },
-  ];
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+  const handleStatusToggle = () => {
+    setIsShopOpen(!isShopOpen);
   };
 
-  // Fallback for gradients if not available in theme
-  const getGradientColors = () => {
-    if (theme.colors.gradients && theme.colors.gradients.primary) {
-      return theme.colors.gradients.primary;
+  const handleStatPress = (statType) => {
+    switch (statType) {
+      case 'visits':
+        navigation.navigate('Analytics', { tab: 'visitors' });
+        break;
+      case 'inquiries':
+        navigation.navigate('Chat');
+        break;
+      case 'popular':
+        navigation.navigate('Products', { filter: 'popular' });
+        break;
+      case 'pending':
+        navigation.navigate('Tasks');
+        break;
     }
-    return [theme.colors.primary, theme.colors.primary];
   };
+
+  const handleActionPress = (actionId) => {
+    switch (actionId) {
+      case 'add_product':
+        navigation.navigate('AddProduct');
+        break;
+      case 'create_post':
+        navigation.navigate('CreatePost');
+        break;
+      case 'messages':
+        navigation.navigate('Chat');
+        break;
+      case 'analytics':
+        navigation.navigate('Analytics');
+        break;
+    }
+  };
+
+  const handleAlertPress = (alert) => {
+    switch (alert.subType) {
+      case 'low_stock':
+        navigation.navigate('Products', { filter: 'low_stock' });
+        break;
+      case 'performance':
+        navigation.navigate('CreatePost', { type: 'deal' });
+        break;
+      default:
+        if (alert.link) {
+          navigation.navigate(alert.link);
+        }
+    }
+  };
+
+  const handleActivityPress = (activity) => {
+    if (activity === 'viewAll') {
+      navigation.navigate('Activity');
+    } else if (activity.link) {
+      const [screen, params] = activity.link.split('/');
+      navigation.navigate(screen, { id: params });
+    }
+  };
+
+  const handleScroll = (event) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y;
+    const diff = currentScrollY - lastScrollY.current;
+    
+    // Determine scroll direction with threshold
+    if (Math.abs(diff) > SCROLL_THRESHOLD) {
+      const newDirection = diff > 0 ? 'down' : 'up';
+      if (newDirection !== scrollDirection.current) {
+        scrollDirection.current = newDirection;
+        setIsTabBarVisible(newDirection === 'up');
+      }
+    }
+    
+    lastScrollY.current = currentScrollY;
+    
+    // Clear existing timeout
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current);
+    }
+    
+    // Set timeout to show tab bar when scrolling stops
+    scrollTimeout.current = setTimeout(() => {
+      setIsTabBarVisible(true);
+    }, SCROLL_TIMEOUT);
+  };
+
+  // Update navigation params to control tab bar visibility
+  useEffect(() => {
+    navigation.setParams({ hideTabBar: !isTabBarVisible });
+  }, [isTabBarVisible, navigation]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
-      {/* Header with Gradient */}
-      <LinearGradient
-        colors={getGradientColors()}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-          paddingTop: 50,
-          paddingBottom: 20,
-          paddingHorizontal: theme.spacing.m,
-        }}
-      >
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{
-              ...theme.typography.body1,
-              color: theme.colors.text.inverse,
-              opacity: 0.9,
-            }}>
-              {getGreeting()}!
-            </Text>
-            <Text style={{
-              ...theme.typography.h3,
-              color: theme.colors.text.inverse,
-              fontWeight: '700',
-              marginTop: 4,
-            }}>
-              {shopData?.shopName || 'Your Shop'}
-            </Text>
-            <Text style={{
-              ...theme.typography.body2,
-              color: theme.colors.text.inverse,
-              opacity: 0.8,
-              marginTop: 2,
-            }}>
-              {shopData?.ownerName || 'Shop Owner'}
-            </Text>
-          </View>
-          
-          <TouchableOpacity
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: 20,
-              padding: 12,
-              position: 'relative',
-            }}
-            onPress={() => navigation.navigate('ShopNotificationScreen')}
-          >
-            <Icon name="bell" size={24} color={theme.colors.text.inverse} />
-            {notifications.filter(n => !n.isRead).length > 0 && (
-              <View style={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: theme.colors.error,
-              }} />
-            )}
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+      {/* Sticky Header */}
+      <View style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+      }}>
+        <DashboardHeader
+          shopData={dashboardData.shopData}
+          notifications={dashboardData.notifications}
+          onNotificationPress={() => navigation.navigate('ShopNotificationScreen')}
+        />
+      </View>
 
+      {/* Scrollable Content */}
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        contentContainerStyle={{ 
+          paddingTop: 140, // Increased space for header
+          paddingBottom: 20 
+        }}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
-        {/* Stats Cards */}
-        <View style={{
-          flexDirection: 'row',
-          paddingHorizontal: theme.spacing.m,
-          paddingTop: theme.spacing.m,
-          gap: theme.spacing.s,
-        }}>
-          <View style={{ flex: 1 }}>
-            <StatsCard
-              title="Today's Sales"
-              value={`₹${analytics.today?.sales?.toLocaleString() || 0}`}
-              icon="currency-inr"
-              change={15}
-              type="revenue"
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <StatsCard
-              title="Orders"
-              value={analytics.today?.orders || 0}
-              icon="clipboard-list"
-              change={8}
-              type="orders"
-            />
-          </View>
-        </View>
+        {/* Shop Status Section */}
+        <ShopStatusSection
+          isOpen={isShopOpen}
+          onToggle={handleStatusToggle}
+        />
 
-        <View style={{
-          flexDirection: 'row',
-          paddingHorizontal: theme.spacing.m,
-          gap: theme.spacing.s,
-        }}>
-          <View style={{ flex: 1 }}>
-            <StatsCard
-              title="Visitors"
-              value={analytics.today?.visitors || 0}
-              icon="eye"
-              change={-3}
-              type="success"
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <StatsCard
-              title="New Followers"
-              value={analytics.today?.newCustomers || 0}
-              icon="account-plus"
-              change={12}
-              type="primary"
-            />
-          </View>
-        </View>
+        {/* Stats Section */}
+        <StatsSection
+          statsData={dashboardData.stats}
+          onStatPress={handleStatPress}
+        />
 
-        {/* Quick Actions */}
-        <View style={{ paddingHorizontal: theme.spacing.m, marginTop: theme.spacing.m }}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            marginHorizontal: -theme.spacing.xs,
-          }}>
-            {quickActions.map((action, index) => (
-              <View key={index} style={{ width: '33.33%', marginBottom: theme.spacing.s }}>
-                <QuickAction
-                  title={action.title}
-                  icon={action.icon}
-                  color={action.color}
-                  onPress={action.action}
-                />
-              </View>
-            ))}
-          </View>
-        </View>
+        {/* Quick Actions Section */}
+        <QuickActionsSection
+          onActionPress={handleActionPress}
+        />
 
-        {/* Monthly Overview */}
-        <View style={{ paddingHorizontal: theme.spacing.m }}>
-          <SellerCard
-            title="Monthly Overview"
-            subtitle="Your business performance this month"
-            icon="chart-box"
-            iconColor={theme.colors.accent || theme.colors.info}
-          >
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: theme.spacing.s,
-            }}>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{
-                  ...theme.typography.h4,
-                  color: theme.colors.primary,
-                  fontWeight: '700',
-                }}>
-                  ₹{analytics.thisMonth?.sales?.toLocaleString() || 0}
-                </Text>
-                <Text style={{
-                  ...theme.typography.caption,
-                  color: theme.colors.text.secondary,
-                }}>
-                  Total Sales
-                </Text>
-              </View>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{
-                  ...theme.typography.h4,
-                  color: theme.colors.secondary,
-                  fontWeight: '700',
-                }}>
-                  {analytics.thisMonth?.orders || 0}
-                </Text>
-                <Text style={{
-                  ...theme.typography.caption,
-                  color: theme.colors.text.secondary,
-                }}>
-                  Total Orders
-                </Text>
-              </View>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{
-                  ...theme.typography.h4,
-                  color: theme.colors.success,
-                  fontWeight: '700',
-                }}>
-                  +{analytics.thisMonth?.growth || 0}%
-                </Text>
-                <Text style={{
-                  ...theme.typography.caption,
-                  color: theme.colors.text.secondary,
-                }}>
-                  Growth
-                </Text>
-              </View>
-            </View>
-          </SellerCard>
-        </View>
+        {/* Alerts Section */}
+        <AlertsSection
+          alerts={dashboardData.alerts}
+          onAlertPress={handleAlertPress}
+        />
 
-        {/* Top Products */}
-        <View style={{ paddingHorizontal: theme.spacing.m }}>
-          <SellerCard
-            title="Top Performing Products"
-            subtitle="Your best sellers this month"
-            icon="star"
-            iconColor={theme.colors.warning}
-          >
-            {analytics.topProducts?.map((product, index) => (
-              <View
-                key={product.id}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: theme.spacing.s,
-                  borderBottomWidth: index < analytics.topProducts.length - 1 ? 1 : 0,
-                  borderBottomColor: theme.colors.divider || theme.colors.border,
-                }}
-              >
-                <View style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 12,
-                  backgroundColor: theme.colors.primary,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: theme.spacing.m,
-                }}>
-                  <Text style={{
-                    ...theme.typography.caption,
-                    color: theme.colors.text.inverse,
-                    fontWeight: '600',
-                  }}>
-                    {index + 1}
-                  </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{
-                    ...theme.typography.body1,
-                    color: theme.colors.text.primary,
-                    fontWeight: '500',
-                  }}>
-                    {product.name}
-                  </Text>
-                </View>
-                <Text style={{
-                  ...theme.typography.body2,
-                  color: theme.colors.primary,
-                  fontWeight: '600',
-                }}>
-                  {product.sales} sold
-                </Text>
-              </View>
-            ))}
-          </SellerCard>
-        </View>
+        {/* Recent Activity Section */}
+        <RecentActivitySection
+          activities={dashboardData.recentActivity}
+          onActivityPress={handleActivityPress}
+        />
       </ScrollView>
     </View>
   );
