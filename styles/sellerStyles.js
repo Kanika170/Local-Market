@@ -1,8 +1,8 @@
+
 import { StyleSheet } from 'react-native';
-import { sellerTheme } from '../theme/sellerTheme';
 
 // Common seller styles that can be reused across components
-export const createSellerStyles = (theme = sellerTheme) => StyleSheet.create({
+export const createSellerStyles = (theme) => StyleSheet.create({
   // Container styles
   container: {
     flex: 1,
@@ -412,7 +412,7 @@ export const createSellerStyles = (theme = sellerTheme) => StyleSheet.create({
 });
 
 // Utility functions for common patterns
-export const getStatusColor = (status, theme = sellerTheme) => {
+export const getStatusColor = (status, theme) => {
   switch (status) {
     case 'active':
     case 'success':
@@ -430,6 +430,6 @@ export const getStatusColor = (status, theme = sellerTheme) => {
   }
 };
 
-export const getGradientColors = (type, theme = sellerTheme) => {
+export const getGradientColors = (type, theme) => {
   return theme.colors.gradients[type] || theme.colors.gradients.primary;
 };
